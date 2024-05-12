@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Struct/XStructInfo.h"
 #include "XClimbCharacter.generated.h"
 
 UCLASS()
@@ -33,22 +34,26 @@ private:
 		class USpringArmComponent* TP_CameraSpringArm;
 	UPROPERTY(VisibleAnywhere)
 		UArrowComponent* WallTraceArrow;
-	UPROPERTY(VisibleAnywhere)
-		UAnimInstance* AnimInstance;
 
 	//攀爬组件
 	UPROPERTY(VisibleAnywhere)
 		class UXClimbComponent* ClimbComponent;
+	//玩家状态组件
+	UPROPERTY(VisibleAnywhere)
+		class UXPlayerStatsComponent* PlayerStatesComponent;
 
 	// 运动输入
 	float AxisValue;
+	//是否加速
+	bool bSprinting;
+	float SprintSpeed = 900.0f;
+	float WalkSpeed = 225.0f;
 	// 旋转角度基数
 	float BaseTurnRate = 45.0f;
 	//StopMontage的延时TimerHandle;
 	FTimerHandle StopMontageTimerHandle;
 	FTimerDelegate StopMontageTimerDelegate;
-	//是否可以切换动作
-	bool bCanChangeMontage = false;
+
 
 public:
 	/*
@@ -58,11 +63,19 @@ public:
 	void MoveRight(float value);
 	void LookUp(float value);
 	void Turn(float value);
-	void JumpPre();
+	void DelayedStopMontageAndJumpPre();
 	void JumpRe();
+	void FastSpeed();
+	void SlowSpeed();
+	void Climb();
 
 	//停止蒙太奇动画
 	void StopMontage(class UAnimMontage* Montage, float DelayBeforeStoppingMontage, float MontageBlendOutTime);
 	UFUNCTION()
 		void DelayStopMontage(float MontageBlendOutTime, UAnimMontage* Montage);
+
+	/*
+	*	---   落地动画播放   ---
+	*/
+	void OnLanded(const FHitResult& Hit);
 };
