@@ -7,9 +7,9 @@
 #include "Character/XClimbCharacter.h"
 #include "Component/XClimbComponent.h"
 
-bool UEndVaultOrClimbNotify::Received_Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) const
+void UEndVaultOrClimbNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    
+    Super::Notify(MeshComp, Animation);
     if (IsValid(MeshComp->GetOwner()))
     {
         UE_LOG(LogTemp, Warning, TEXT("MeshComp->GetOwner()FinishedNify!"));
@@ -22,5 +22,4 @@ bool UEndVaultOrClimbNotify::Received_Notify(USkeletalMeshComponent* MeshComp, U
             ClimbComponent->FinishClimb(bShouldPlayLandingAnim, bLandingTypeToggle);
         }
     }
-    return true;
 }

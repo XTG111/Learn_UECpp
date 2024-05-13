@@ -14,5 +14,5 @@ class RECLIMB_CPP_API UStopMontageNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 public:
-	bool Received_Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) const;
+	virtual void Notify(class USkeletalMeshComponent* MeshComp, class UAnimSequenceBase* Animation) override;
 };

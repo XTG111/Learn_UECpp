@@ -5,10 +5,10 @@
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimInstance.h"
 
-bool UStopMontageNotify::Received_Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) const
+void UStopMontageNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+    Super::Notify(MeshComp, Animation);
     UAnimMontage* AnimMontage = Cast<UAnimMontage>(Animation);
     UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
     AnimInstance->Montage_Stop(AnimMontage->GetDefaultBlendOutTime(), AnimMontage);
-    return true;
 }

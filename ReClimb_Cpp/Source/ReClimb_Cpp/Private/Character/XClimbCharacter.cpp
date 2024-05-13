@@ -77,7 +77,7 @@ void AXClimbCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Shift", IE_Pressed, this, &AXClimbCharacter::FastSpeed);
 	PlayerInputComponent->BindAction("Shift", IE_Released, this, &AXClimbCharacter::SlowSpeed);
 
-	PlayerInputComponent->BindAction("Climb", IE_Released, this, &AXClimbCharacter::Climb);
+	PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &AXClimbCharacter::Climb);
 
 }
 
@@ -114,9 +114,13 @@ void AXClimbCharacter::Turn(float value)
 void AXClimbCharacter::DelayedStopMontageAndJumpPre()
 {
 	//如果此时角色没有在攀爬
-	if (ClimbComponent && !ClimbComponent->ClimbingCheck())
+	if (!ClimbComponent->ClimbingCheck())
 	{
 		StopMontage(nullptr, 0.3f, 0.25f);
+	}
+	else
+	{
+		ClimbComponent->ClimbOrVault();
 	}
 }
 

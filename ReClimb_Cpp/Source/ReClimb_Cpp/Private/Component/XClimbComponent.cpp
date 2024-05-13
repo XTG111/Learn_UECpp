@@ -181,7 +181,7 @@ bool UXClimbComponent::GetWallTrace(FHitResult& Hit)
 			5.0f
 		);
 		Hit = ArrowHit;
-		return true;
+		return bIsArrowHit;
 	}
 }
 
@@ -296,6 +296,8 @@ bool UXClimbComponent::FenceCheck()
 
 bool UXClimbComponent::ClimbingCheck()
 {
+	FHitResult Hit;
+	bClimbing = GetWallTrace(Hit);
 	return bClimbing;
 }
 
@@ -523,7 +525,7 @@ void UXClimbComponent::JumpClimAction()
 		//½ûÖ¹ÊäÈë
 		CharacterRef->DisableInput(ControllerRef);
 		//¹Ø±Õ½ºÄÒÌåÅö×²
-		CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		CharacterMovementIns->SetMovementMode(EMovementMode::MOVE_Flying, 0);
 		if (bFence)
 		{
@@ -778,7 +780,7 @@ void UXClimbComponent::FinishLowClimb(bool bshouldplaylandingAnimation, bool bla
 
 void UXClimbComponent::ClimbOrVault()
 {
-	if (!bClimbing)
+	if (bClimbing)
 	{
 		bVerifyClimbing = true;
 		int check = TraceCaculation();
