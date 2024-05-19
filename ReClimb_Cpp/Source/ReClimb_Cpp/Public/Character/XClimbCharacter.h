@@ -20,7 +20,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -57,7 +57,7 @@ private:
 
 public:
 	/*
-	*   ---    移动函数    --- 
+	*   ---    移动函数    ---
 	*/
 	void MoveForWard(float value);
 	void MoveRight(float value);

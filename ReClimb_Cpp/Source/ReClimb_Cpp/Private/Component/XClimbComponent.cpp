@@ -36,8 +36,12 @@ void UXClimbComponent::BeginPlay()
 	if (CharacterRef)
 	{
 		ControllerRef = Cast<APlayerController>(CharacterRef->GetController());
+		StartAutoClimbTimer();
+		StartFootIKTimer();
+		CaftLeftLocation = CharacterRef->GetMesh()->GetSocketLocation(TEXT("calf_lSocket"));
+		CaftRightLocation = CharacterRef->GetMesh()->GetSocketLocation(TEXT("calf_rSocket"));
 	}
-	
+
 }
 
 
@@ -189,7 +193,7 @@ bool UXClimbComponent::GetWallHeightTrace(FHitResult& Hit)
 {
 	//通过系数-3 改变想要设置的墙体宽度
 	FVector Thick = UKismetMathLibrary::GetForwardVector(UKismetMathLibrary::MakeRotFromX(WallNormal)) * -3.0f;
-	
+
 	FVector WallStart = WallLocation + Thick + FVector{0.0f, 0.0f, 350.0f};
 	FVector WallEnd = WallStart - FVector{0.0f, 0.0f, 350.0f};
 	EObjectTypeQuery w = UEngineTypes::ConvertToObjectType(ECC_WorldStatic);
@@ -344,7 +348,7 @@ void UXClimbComponent::JumpDownDelay()
 	bClimbing = false;
 	CheckYawRotation();
 	CharacterRef->EnableInput(ControllerRef);
-	
+
 }
 
 bool UXClimbComponent::SprintCheck()
@@ -437,7 +441,7 @@ void UXClimbComponent::SetPlayerLocation(float playerdistanceoffset, const FVect
 {
 	if (!CharacterRef) return;
 	FVector newLocation;
-	FVector WallForwardLocation = WallLocation + UKismetMathLibrary::GetForwardVector(UKismetMathLibrary::MakeRotFromX(WallNormal))* playerdistanceoffset;
+	FVector WallForwardLocation = WallLocation + UKismetMathLibrary::GetForwardVector(UKismetMathLibrary::MakeRotFromX(WallNormal)) * playerdistanceoffset;
 	WallForwardLocation.Z = (WallHeight - heightoffset).Z;
 	newLocation = FMath::Lerp(CharacterRef->GetActorLocation(), WallForwardLocation, Alpha);
 	CharacterRef->SetActorLocation(newLocation, true, false);
@@ -475,10 +479,10 @@ void UXClimbComponent::ImpactLand(const FHitResult& Hit)
 	CharacterRef->DisableInput(ControllerRef);
 	float DelayTime = CharacterRef->GetVelocity().Z >= FallCheckMax ? 1.067f : 1.8f;
 	CharacterRef->GetWorldTimerManager().SetTimer(
-		DisableInputTimerHandle, 
-		this, 
-		&UXClimbComponent::EnableInput, 
-		DelayTime, 
+		DisableInputTimerHandle,
+		this,
+		&UXClimbComponent::EnableInput,
+		DelayTime,
 		false
 	);
 }
@@ -563,7 +567,7 @@ void UXClimbComponent::JumpClimAction()
 
 void UXClimbComponent::FinishJumpClimb(bool bshouldplaylandingAnimation, bool blandinganimtype)
 {
-	
+
 	if (!CharacterRef || !ControllerRef || !CapsuleComponent || !CharacterMovementIns) return;
 	UE_LOG(LogTemp, Warning, TEXT("FinishJumpClimb!"));
 	if (bFence)
@@ -641,7 +645,7 @@ void UXClimbComponent::HighClimAction()
 			}
 			else
 			{
-				SetPlayerLocationSmooth(HighClimbDistanceOffset,HighClimbHeightOffset);
+				SetPlayerLocationSmooth(HighClimbDistanceOffset, HighClimbHeightOffset);
 				//播放翻越的动画
 				int len = FAnimations.ClimbAnims.HighClimb.Num();
 				UAnimMontage* AnimMontage = FAnimations.ClimbAnims.HighClimb[UKismetMathLibrary::RandomInteger(len)];
@@ -693,8 +697,8 @@ void UXClimbComponent::FinishHighClimb(bool bshouldplaylandingAnimation, bool bl
 			CharacterRef->GetWorldTimerManager().SetTimer(
 				JumpDownDelayTimerHandle,
 				this,
-				&UXClimbComponent::JumpDownDelay, 
-				2.7f, 
+				&UXClimbComponent::JumpDownDelay,
+				2.7f,
 				false
 			);
 		}
@@ -737,7 +741,7 @@ void UXClimbComponent::LowClimAction()
 		{
 			if (MovingCheck())
 			{
-				SetPlayerLocationSmooth(RunLowVaultDistanceOffset,RunLowVaultHeightOffset);
+				SetPlayerLocationSmooth(RunLowVaultDistanceOffset, RunLowVaultHeightOffset);
 				//播放翻越的动画
 				int len = FAnimations.VaultAnims.RunLowVault.Num();
 				UAnimMontage* AnimMontage = FAnimations.VaultAnims.RunLowVault[UKismetMathLibrary::RandomInteger(len)];
@@ -757,7 +761,7 @@ void UXClimbComponent::LowClimAction()
 	{
 		if (MovingCheck())
 		{
-			SetPlayerLocationSmooth(RunLowClimbDistanceOffset,RunLowClimbHeightOffset);
+			SetPlayerLocationSmooth(RunLowClimbDistanceOffset, RunLowClimbHeightOffset);
 			//播放翻越的动画
 			int len = FAnimations.ClimbAnims.RunLowClimb.Num();
 			UAnimMontage* AnimMontage = FAnimations.ClimbAnims.RunLowClimb[UKismetMathLibrary::RandomInteger(len)];
@@ -765,7 +769,7 @@ void UXClimbComponent::LowClimAction()
 		}
 		else
 		{
-			SetPlayerLocationSmooth(LowClimbDistanceOffset,LowClimbHeightOffset);
+			SetPlayerLocationSmooth(LowClimbDistanceOffset, LowClimbHeightOffset);
 			//播放翻越的动画
 			int len = FAnimations.ClimbAnims.LowClimb.Num();
 			UAnimMontage* AnimMontage = FAnimations.ClimbAnims.LowClimb[UKismetMathLibrary::RandomInteger(len)];
@@ -780,6 +784,8 @@ void UXClimbComponent::FinishLowClimb(bool bshouldplaylandingAnimation, bool bla
 
 void UXClimbComponent::ClimbOrVault()
 {
+	FHitResult Hit;
+	bClimbing = GetWallTrace(Hit);
 	if (bClimbing)
 	{
 		bVerifyClimbing = true;
@@ -884,4 +890,149 @@ void UXClimbComponent::FinishClimb(bool bshouldplaylandingAnimation, bool bvault
 	}
 }
 
+void UXClimbComponent::StartFootIKTimer()
+{
+	CharacterRef->GetWorldTimerManager().SetTimer(FootIKTimer, this, &UXClimbComponent::CalculateFootIK, 0.01f, true, 0.0f);
+	//UKismetSystemLibrary::K2_SetTimer(this, TEXT("CalculateFootIK"), 0.01f, true, 0.0f, 0.0f);
+}
 
+void UXClimbComponent::CalculateFootIK()
+{
+	if (!IsValid(CapsuleComponent)) return;
+	//UE_LOG(LogTemp, Warning, TEXT("FootIK!"));
+	LeftLocation = LeftFootIK();
+	RightLocation = RightFootIK();
+	HipOffset(RightLocation, LeftLocation);
+	//CharacterRef->GetWorldTimerManager().ClearTimer(FootIKTimer);
+
+}
+
+float UXClimbComponent::IKFootTrace(const FName& SocketName, FVector& OutHitLocation, FVector& OutHitNormal)
+{
+	FVector SocketLocation = CharacterRef->GetMesh()->GetSocketLocation(SocketName);
+	FVector ActorLocation = CharacterRef->GetActorLocation();
+	float FootTraceOffset;
+	FVector Start = { SocketLocation.X,SocketLocation.Y,ActorLocation.Z };
+	FVector End = { SocketLocation.X,SocketLocation.Y,SocketLocation.Z - CapsuleComponent->GetUnscaledCapsuleHalfHeight() };
+	FHitResult Hit;
+	ETraceTypeQuery Visible = UEngineTypes::ConvertToTraceType(ECC_Visibility);
+	bool IsHit = UKismetSystemLibrary::LineTraceSingle(
+		GetWorld(),
+		Start,
+		End,
+		Visible,
+		false,
+		TArray<AActor*>{},
+		EDrawDebugTrace::None,
+		Hit,
+		true
+	);
+
+	if (!IsHit)
+	{
+		OutHitLocation = { 0.0f,0.0f,0.0f };
+		FootTraceOffset = 0.0f;
+		OutHitNormal = { 0.0f,0.0f,0.0f };
+	}
+	else
+	{
+		FVector HitLocation = Hit.ImpactPoint;
+		FVector HitNormal = Hit.ImpactNormal;
+		OutHitLocation = HitLocation;
+		OutHitNormal = HitNormal;
+		//由于网格的根节点在地面上，为了求解命中位置相对于Mesh的偏移量，需要将命中位置 - Mesh的位置坐标
+		float Z = (HitLocation - CharacterRef->GetMesh()->GetComponentLocation()).Z;
+		//float Z = (HitLocation - SocketLocation).Z;
+
+		FootTraceOffset = Z - IKHipOffset + 5.0f;
+		UE_LOG(LogTemp, Warning, TEXT("FootTraceOffset:%f"), FootTraceOffset);
+	}
+	return FootTraceOffset;
+}
+
+FRotator UXClimbComponent::CalculateFootRotation(const FVector& hitnormal)
+{
+	float X = UKismetMathLibrary::Atan2(hitnormal.Y, hitnormal.Z);
+	float Y = UKismetMathLibrary::Atan2(hitnormal.X, hitnormal.Z) * (-1.0f);
+	return UKismetMathLibrary::MakeRotator(X, Y, 0.0f);
+}
+
+FVector UXClimbComponent::LeftFootIK()
+{
+	FVector OutHitLocation;
+	FVector OutHitNormal;
+	FName LeftSocket(TEXT("foot_lSocket"));
+	float FootTraceOffset = IKFootTrace(LeftSocket, OutHitLocation, OutHitNormal);
+	IKLeftFootOffset = UKismetMathLibrary::FInterpTo(
+		IKLeftFootOffset,
+		FootTraceOffset,
+		UGameplayStatics::GetWorldDeltaSeconds(this),
+		20.0f
+	);
+	IKLeftFootRotation = CalculateFootRotation(OutHitNormal);
+
+	FVector caftl = CharacterRef->GetMesh()->GetSocketLocation(TEXT("calf_lSocket"));
+	CaftLeftLocation = UKismetMathLibrary::VInterpTo(
+		CaftLeftLocation,
+		caftl,
+		UGameplayStatics::GetWorldDeltaSeconds(this),
+		20.0f
+	);
+	return OutHitLocation;
+}
+
+FVector UXClimbComponent::RightFootIK()
+{
+	FVector OutHitLocation;
+	FVector OutHitNormal;
+	FName RightSocket(TEXT("foot_rSocket"));
+	float FootTraceOffset = IKFootTrace(RightSocket, OutHitLocation, OutHitNormal);
+	IKRightFootOffset = UKismetMathLibrary::FInterpTo(
+		IKRightFootOffset,
+		FootTraceOffset,
+		UGameplayStatics::GetWorldDeltaSeconds(this),
+		20.0f
+	);
+	IKRightFootRotation = CalculateFootRotation(OutHitNormal);
+
+	FVector caftr = CharacterRef->GetMesh()->GetSocketLocation(TEXT("calf_rSocket"));
+	CaftRightLocation = UKismetMathLibrary::VInterpTo(
+		CaftRightLocation,
+		caftr,
+		UGameplayStatics::GetWorldDeltaSeconds(this),
+		20.0f
+	);
+
+	return OutHitLocation;
+}
+
+void UXClimbComponent::HipOffset(FVector& RightFootLocation, FVector& LeftFootLocation)
+{
+	float target = abs((RightFootLocation - LeftFootLocation).Z);
+	if (target != 0.0f)target = UKismetMathLibrary::SelectFloat((-1.0f * target), 0.0f, (target < CapsuleComponent->GetUnscaledCapsuleHalfHeight() / 2.0f));
+	IKHipOffset = UKismetMathLibrary::FInterpTo(
+		IKHipOffset,
+		target,
+		UGameplayStatics::GetWorldDeltaSeconds(this),
+		20.0f
+	);
+}
+
+void UXClimbComponent::StartAutoClimbTimer()
+{
+	CharacterRef->GetWorldTimerManager().SetTimer(AutoClimbTimer, this, &UXClimbComponent::AutoClimb, 0.01f, true, 0.0f);
+	//UKismetSystemLibrary::K2_SetTimer(this, TEXT("AutoClimb"), 0.01f, true, 0.0f, 0.0f);
+}
+void UXClimbComponent::AutoClimb()
+{
+	if (SprintCheck())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AutoClimb!Go"));
+		if (bToggleSprintClimb)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AutoClimb!"));
+			ClimbOrVault();
+		}
+	}
+	CharacterRef->GetWorldTimerManager().ClearTimer(AutoClimbTimer);
+}

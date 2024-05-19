@@ -17,7 +17,7 @@
 // Sets default values
 AXClimbCharacter::AXClimbCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationYaw = false;
@@ -31,7 +31,7 @@ AXClimbCharacter::AXClimbCharacter()
 	TP_CameraSpringArm->SocketOffset = FVector{ 0.0f,0.0f,250.0f };
 
 
-	TP_Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("TP_Camera"));	
+	TP_Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("TP_Camera"));
 	TP_Camera->SetupAttachment(TP_CameraSpringArm, USpringArmComponent::SocketName);
 	TP_Camera->bUsePawnControlRotation = false;
 
@@ -41,7 +41,7 @@ AXClimbCharacter::AXClimbCharacter()
 
 	ClimbComponent = CreateDefaultSubobject<UXClimbComponent>(TEXT("ClimbComponent"));
 	PlayerStatesComponent = CreateDefaultSubobject<UXPlayerStatsComponent>(TEXT("PlayerStatesComponent"));
-	
+
 }
 
 // Called when the game starts or when spawned
@@ -168,13 +168,13 @@ void AXClimbCharacter::StopMontage(UAnimMontage* Montage, float DelayBeforeStopp
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Montage Valid And Playing, need Delay!"));
 			StopMontageTimerDelegate.BindUFunction(this, FName("DelayStopMontage"), MontageBlendOutTime, Montage);
-			
+
 			GetWorldTimerManager().SetTimer(
 				StopMontageTimerHandle,
 				StopMontageTimerDelegate,
 				DelayBeforeStoppingMontage,
 				false
-				);
+			);
 		}
 		else
 		{

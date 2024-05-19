@@ -14,18 +14,18 @@ class UXCharacterInitInterface : public UInterface
 };
 
 /**
- * 
+ *
  */
 class RECLIMB_CPP_API IXCharacterInitInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+		// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		virtual void InitCharacter(ACharacter* Player,class UArrowComponent* WallTraceArrow, class UCapsuleComponent* Capsule, class UCharacterMovementComponent* CharacterMovement) = 0;
+	virtual void InitCharacter(ACharacter* Player, class UArrowComponent* WallTraceArrow, class UCapsuleComponent* Capsule, class UCharacterMovementComponent* CharacterMovement) = 0;
 	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		virtual void StopMontage() = 0;
+	virtual void StopMontage() = 0;
 	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		virtual void SetFPMesh(class USkeletalMeshComponent* FPMesh) = 0;
+	virtual void SetFPMesh(class USkeletalMeshComponent* FPMesh) = 0;
 };

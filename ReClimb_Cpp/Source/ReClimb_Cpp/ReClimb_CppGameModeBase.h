@@ -7,11 +7,11 @@
 #include "ReClimb_CppGameModeBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class RECLIMB_CPP_API AReClimb_CppGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 };

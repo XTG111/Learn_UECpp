@@ -7,7 +7,7 @@
 #include "StopMontageNotify.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class RECLIMB_CPP_API UStopMontageNotify : public UAnimNotify

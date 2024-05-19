@@ -9,7 +9,7 @@
 // Sets default values
 AXClimbingManager::AXClimbingManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -48,7 +48,7 @@ void AXClimbingManager::CWTimelineTickCallBack(float value)
 	Time = value;
 	UXClimbComponent* ClimbComp = Cast<UXClimbComponent>(XClimbCharacer->GetComponentByClass(UXClimbComponent::StaticClass()));
 	if (!ClimbComp) return;
- 	float Alpha = InterpolateTimeByHeight(Time, ClimbComp);
+	float Alpha = InterpolateTimeByHeight(Time, ClimbComp);
 	if (Alpha <= 0.0f) return;
 	ClimbComp->SetPlayerLocation(PlayerDistanceOffset, HeightOffset, Alpha);
 	ClimbComp->FaceWall(Time);

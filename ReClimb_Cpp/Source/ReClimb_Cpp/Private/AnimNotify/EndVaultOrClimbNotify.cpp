@@ -9,17 +9,17 @@
 
 void UEndVaultOrClimbNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    Super::Notify(MeshComp, Animation);
-    if (IsValid(MeshComp->GetOwner()))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("MeshComp->GetOwner()FinishedNify!"));
-        AXClimbCharacter* CharacterRef = Cast<AXClimbCharacter>(MeshComp->GetOwner());
-        UXClimbComponent* ClimbComponent = Cast<UXClimbComponent>(CharacterRef->GetComponentByClass(UXClimbComponent::StaticClass()));
+	Super::Notify(MeshComp, Animation);
+	if (IsValid(MeshComp->GetOwner()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MeshComp->GetOwner()FinishedNify!"));
+		AXClimbCharacter* CharacterRef = Cast<AXClimbCharacter>(MeshComp->GetOwner());
+		UXClimbComponent* ClimbComponent = Cast<UXClimbComponent>(CharacterRef->GetComponentByClass(UXClimbComponent::StaticClass()));
 
-        if(IsValid(ClimbComponent))
-        {
-            UE_LOG(LogTemp, Warning, TEXT("ClimbComponentFinishedNify!"));
-            ClimbComponent->FinishClimb(bShouldPlayLandingAnim, bLandingTypeToggle);
-        }
-    }
+		if (IsValid(ClimbComponent))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ClimbComponentFinishedNify!"));
+			ClimbComponent->FinishClimb(bShouldPlayLandingAnim, bLandingTypeToggle);
+		}
+	}
 }

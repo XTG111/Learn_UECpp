@@ -14,7 +14,7 @@ struct FClimbAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ClimbAnim")
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ClimbAnim")
 		TArray<class UAnimMontage*> HighClimb;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ClimbAnim")
 		TArray<UAnimMontage*> RunHighClimb;
@@ -34,7 +34,7 @@ struct FLandAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandAnim")
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandAnim")
 		TArray<UAnimMontage*> LowLand;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandAnim")
 		TArray<UAnimMontage*> HighLand;
@@ -51,7 +51,7 @@ struct FVaultAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VaultAnim")
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VaultAnim")
 		TArray<UAnimMontage*> LowVault;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VaultAnim")
 		TArray<UAnimMontage*> RunLowVault;
@@ -71,7 +71,7 @@ struct FAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
 		FClimbAnims ClimbAnims;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
 		FLandAnims LandAnims;
@@ -80,11 +80,11 @@ struct FAnims : public FTableRowBase
 };
 
 /**
- * 
+ *
  */
 UCLASS()
 class RECLIMB_CPP_API UXStructInfo : public UUserDefinedStruct
 {
 	GENERATED_BODY()
-	
+
 };

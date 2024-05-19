@@ -7,8 +7,8 @@
 
 void UStopMontageNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    Super::Notify(MeshComp, Animation);
-    UAnimMontage* AnimMontage = Cast<UAnimMontage>(Animation);
-    UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
-    AnimInstance->Montage_Stop(AnimMontage->GetDefaultBlendOutTime(), AnimMontage);
+	Super::Notify(MeshComp, Animation);
+	UAnimMontage* AnimMontage = Cast<UAnimMontage>(Animation);
+	UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
+	AnimInstance->Montage_Stop(AnimMontage->GetDefaultBlendOutTime(), AnimMontage);
 }

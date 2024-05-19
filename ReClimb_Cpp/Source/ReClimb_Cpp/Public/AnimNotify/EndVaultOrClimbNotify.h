@@ -7,7 +7,7 @@
 #include "EndVaultOrClimbNotify.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class RECLIMB_CPP_API UEndVaultOrClimbNotify : public UAnimNotify

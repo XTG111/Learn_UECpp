@@ -10,11 +10,11 @@
 #include "XClimbComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class RECLIMB_CPP_API UXClimbComponent : public UActorComponent, public IXCharacterInitInterface
 {
 	GENERATED_BODY()
-public:	
+public:
 	// Sets default values for this component's properties
 	UXClimbComponent();
 
@@ -22,7 +22,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -41,7 +41,7 @@ private:
 		class USkeletalMeshComponent* FPMeshIns;
 
 	//存储蒙太奇的结构体
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"),Category = "AnimStruct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Category = "AnimStruct")
 		FAnims FAnimations;
 
 	//播放蒙太奇动画时禁止输入的延迟时间
@@ -51,7 +51,9 @@ private:
 	bool bClimbing;
 	//验证是否可以Climb，当当前没有在攀爬状态下
 	bool bVerifyClimbing = true;
-	
+	//自动攀爬
+	bool bToggleSprintClimb = true;
+
 	//是否可以攀爬
 	bool bCanClimb;
 	//是否是翻越围墙
@@ -64,7 +66,7 @@ private:
 	bool bShouldClimb;
 	//如果高度还高，进行跳跃攀爬的动作
 	bool bJumpClimb;
-	
+
 	//跳跃状态
 	EClimbingTypes ClimbingTypes = EClimbingTypes::ECT_LowClimb;
 
@@ -143,6 +145,20 @@ private:
 	FVector WallTopLocation;
 	FVector FarWallHeight;
 
+	//FootIK
+	float IKLeftFootOffset;
+	float IKRightFootOffset;
+	FRotator IKLeftFootRotation;
+	FRotator IKRightFootRotation;
+
+	FVector LeftLocation;
+	FVector RightLocation;
+
+	FVector CaftLeftLocation;
+	FVector CaftRightLocation;
+
+	float IKHipOffset;
+
 
 	//获取成员变量
 public:
@@ -150,6 +166,15 @@ public:
 	inline FVector GetWallHeight() { return WallHeight; }
 	inline FVector GetWallLocation() { return WallLocation; }
 	inline float GetInterpolationSpeed() { return InterpolationSpeed; }
+	inline float GetIKLeftFootOffset() { return IKLeftFootOffset; }
+	inline float GetIKRightFootOffset() { return IKRightFootOffset; }
+	inline float GetIKHipOffset() { return IKHipOffset; }
+	inline FRotator GetIKLeftFootRotation() { return IKLeftFootRotation; }
+	inline FRotator GetIKRightFootRotation() { return IKRightFootRotation; }
+	inline FVector GetLeftLocation() { return LeftLocation; }
+	inline FVector GetRightLocation() { return RightLocation; }
+	inline FVector GetCaftLeftLocation() { return CaftLeftLocation; }
+	inline FVector GetCaftRightLocation() { return CaftRightLocation; }
 
 	//重写IXCharacterInitInterface接口类中的函数
 public:
@@ -171,7 +196,7 @@ public:
 	bool LedgeCheck();
 	//检测是否是一个Fence
 	bool FenceCheck();
-	
+
 
 public:
 	//判断是否正在攀爬
@@ -246,5 +271,29 @@ public:
 	//结束攀爬
 	void FinishClimb(bool bshouldplaylandingAnimation, bool bvaultLanding);
 
+	/*
+	*	--- Foot IK ---
+	*/
+	FTimerHandle FootIKTimer;
+	void StartFootIKTimer();
+	UFUNCTION(BlueprintCallable)
+		void CalculateFootIK();
+
+	//设置IK位置
+	float IKFootTrace(const FName& SocketName, FVector& OutHitLocation, FVector& OutHitNormal);
+	FRotator CalculateFootRotation(const FVector& hitnormal);
+
+	FVector LeftFootIK();
+	FVector RightFootIK();
+
+	void HipOffset(FVector& RightFootLocation, FVector& LeftFootLocation);
+
+	/*
+	*	--- Auto Climb ---
+	*/
+	FTimerHandle AutoClimbTimer;
+	void StartAutoClimbTimer();
+	UFUNCTION(BlueprintCallable)
+		void AutoClimb();
 
 };

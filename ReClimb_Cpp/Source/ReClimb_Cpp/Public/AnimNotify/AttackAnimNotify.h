@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
-#include "XClimbGameMode.generated.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "AttackAnimNotify.generated.h"
 
 /**
  *
  */
 UCLASS()
-class RECLIMB_CPP_API AXClimbGameMode : public AGameMode
+class RECLIMB_CPP_API UAttackAnimNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 
