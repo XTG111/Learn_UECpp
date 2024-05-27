@@ -5,6 +5,7 @@
 #include "Character/XClimbCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -68,6 +69,13 @@ void UXClimbComponent::StopMontage()
 
 void UXClimbComponent::SetFPMesh(USkeletalMeshComponent* FPMesh)
 {
+}
+
+void UXClimbComponent::FloatDebug(const FString& DebugText, const float DebugFloat, const FString& DebugFinalText)
+{
+	FString Res = DebugText + UKismetStringLibrary::Conv_FloatToString(DebugFloat) + DebugFinalText;
+	//const UObject* WorldContextObject, const FString& InString, bool bPrintToScreen, bool bPrintToLog, FLinearColor TextColor, float Duration
+	UKismetSystemLibrary::PrintString(GetWorld(), Res, true, true, FColor::Blue, 2.0f);
 }
 
 void UXClimbComponent::OverHeadCheck()
@@ -177,7 +185,7 @@ bool UXClimbComponent::GetWallTrace(FHitResult& Hit)
 			ObjectTypes,
 			false,
 			TArray<AActor*>{},
-			EDrawDebugTrace::ForDuration,
+			EDrawDebugTrace::None,
 			ArrowHit,
 			true,
 			FColor::Red,
@@ -602,7 +610,12 @@ void UXClimbComponent::FinishJumpClimb(bool bshouldplaylandingAnimation, bool bl
 			int len = FAnimations.VaultAnims.HighVault_JumpDown.Num();
 			UAnimMontage* AnimMontage = FAnimations.VaultAnims.HighVault_JumpDown[UKismetMathLibrary::RandomInteger(len)];
 			CharacterRef->PlayAnimMontage(AnimMontage, 1.0f, NAME_None);
-			CharacterRef->GetWorldTimerManager().SetTimer(JumpDownDelayTimerHandle, this, &UXClimbComponent::JumpDownDelay, 2.7f, false);
+			//CharacterRef->GetWorldTimerManager().SetTimer(JumpDownDelayTimerHandle, this, &UXClimbComponent::JumpDownDelay, 2.7f, false);
+			CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			CharacterMovementIns->SetMovementMode(EMovementMode::MOVE_Walking, 0);
+			bClimbing = false;
+			CheckYawRotation();
+			CharacterRef->EnableInput(ControllerRef);
 		}
 	}
 }
@@ -622,7 +635,7 @@ void UXClimbComponent::HighClimAction()
 	{
 		CharacterRef->DisableInput(ControllerRef);
 		//关闭胶囊体碰撞
-		CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		CharacterMovementIns->SetMovementMode(EMovementMode::MOVE_Flying, 0);
 		if (bFence)
 		{
@@ -714,7 +727,7 @@ void UXClimbComponent::LowClimbs()
 void UXClimbComponent::LowClimAction()
 {
 	if (!CharacterRef || !ControllerRef || !CapsuleComponent || !CharacterMovementIns) return;
-	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CharacterMovementIns->SetMovementMode(EMovementMode::MOVE_Flying, 0);
 	if (bCanVault)
 	{
@@ -784,17 +797,19 @@ void UXClimbComponent::FinishLowClimb(bool bshouldplaylandingAnimation, bool bla
 
 void UXClimbComponent::ClimbOrVault()
 {
-	FHitResult Hit;
-	bClimbing = GetWallTrace(Hit);
-	if (bClimbing)
+	//FHitResult Hit;
+	//bClimbing = GetWallTrace(Hit);
+	if (!bClimbing)
 	{
 		bVerifyClimbing = true;
 		int check = TraceCaculation();
+		//Only Thick Do
 		if (check == 0)
 		{
 			WallThicknessCheck();
 			bIsWallHit = false;
 		}
+		//Thick And NoThick
 		if (bVerifyClimbing)
 		{
 			//执行对应的Climb动画

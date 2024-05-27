@@ -48,7 +48,7 @@ private:
 	FTimerHandle DisableInputTimerHandle;
 
 	//是否正在攀爬状态
-	bool bClimbing;
+	bool bClimbing = false;
 	//验证是否可以Climb，当当前没有在攀爬状态下
 	bool bVerifyClimbing = true;
 	//自动攀爬
@@ -159,6 +159,7 @@ private:
 
 	float IKHipOffset;
 
+	bool bDebug;
 
 	//获取成员变量
 public:
@@ -181,6 +182,9 @@ public:
 	virtual void InitCharacter(ACharacter* Player, UArrowComponent* WallTraceArrow, UCapsuleComponent* Capsule, UCharacterMovementComponent* CharacterMovement) override;
 	virtual void StopMontage() override;
 	virtual void SetFPMesh(USkeletalMeshComponent* FPMesh) override;
+
+	//Debug
+	void FloatDebug(const FString& DebugText, const float DebugFloat, const FString& DebugFinalText);
 
 	//射线检测相关
 public:
