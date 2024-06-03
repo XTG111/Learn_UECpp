@@ -20,6 +20,8 @@ void UXClimbCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	speed = XClimbCharacter->GetVelocity().Size();
 	Direction = CalculateDirection(XClimbCharacter->GetVelocity(), XClimbCharacter->GetActorRotation());
 	FootIK();
+
+
 }
 
 void UXClimbCharacterAnimInstance::FootIK()
@@ -34,4 +36,9 @@ void UXClimbCharacterAnimInstance::FootIK()
 	HipOffsetIK = XClimbComp->GetIKHipOffset();
 	LeftFootRotationIK = XClimbComp->GetIKLeftFootRotation();
 	RightFootRotationIK = XClimbComp->GetIKRightFootRotation();
+
+	LeftHandLocationIK = XClimbComp->GetLeftHandLocation();
+	RightHandLocationIK = XClimbComp->GetRightHandLocation();
+	bClimbing = XClimbComp->GetbClimbing();
+
 }

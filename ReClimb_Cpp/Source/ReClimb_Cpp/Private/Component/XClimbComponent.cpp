@@ -163,6 +163,8 @@ bool UXClimbComponent::GetWallTrace(FHitResult& Hit)
 			else
 			{
 				Hit = ArrowHit;
+				LeftHandLocation = ArrowHit.ImpactPoint + FVector{0.0f, 0.0f, 30.0f};
+				RightHandLocation = ArrowHit.ImpactPoint - FVector{0.0f, 0.0f, 30.0f};
 				return bIsArrowHit;
 			}
 		}
@@ -193,6 +195,8 @@ bool UXClimbComponent::GetWallTrace(FHitResult& Hit)
 			5.0f
 		);
 		Hit = ArrowHit;
+		LeftHandLocation = ArrowHit.ImpactPoint + FVector{0.0f, 0.0f, 30.0f};
+		RightHandLocation = ArrowHit.ImpactPoint - FVector{0.0f, 0.0f, 30.0f};
 		return bIsArrowHit;
 	}
 }
@@ -222,6 +226,8 @@ bool UXClimbComponent::GetWallHeightTrace(FHitResult& Hit)
 		5.0f
 	);
 	WallTopLocation = WallHit.ImpactPoint;
+	LeftHandLocation += FVector{WallTopLocation.Z, 0.0f, 0.0f};
+	RightHandLocation -= FVector{WallTopLocation.Z, 0.0f, 0.0f};
 	Hit = WallHit;
 	return bIsHit;
 }
@@ -520,7 +526,7 @@ void UXClimbComponent::JumpImpactLanding(bool bJILA, bool bLAT)
 
 void UXClimbComponent::JumpClimbs()
 {
-	UE_LOG(LogTemp, Warning, TEXT("JumpClimbs!"));
+	//UE_LOG(LogTemp, Warning, TEXT("JumpClimbs!"));
 	ClimbingTypes = EClimbingTypes::ECT_JumpClimb;
 	JumpClimAction();
 }
@@ -528,7 +534,7 @@ void UXClimbComponent::JumpClimbs()
 void UXClimbComponent::JumpClimAction()
 {
 	if (!CharacterRef || !ControllerRef || !CapsuleComponent) return;
-	UE_LOG(LogTemp, Warning, TEXT("JumpClimbAction!"));
+	//UE_LOG(LogTemp, Warning, TEXT("JumpClimbAction!"));
 	bCanClimb = true;
 	//对正上方是否有物体的判断
 	OverHeadCheck();
@@ -582,7 +588,7 @@ void UXClimbComponent::FinishJumpClimb(bool bshouldplaylandingAnimation, bool bl
 	{
 		bFence = false;
 		JumpImpactLanding(bshouldplaylandingAnimation, false);
-		UE_LOG(LogTemp, Warning, TEXT("Fence Jump Finish!"));
+		//UE_LOG(LogTemp, Warning, TEXT("Fence Jump Finish!"));
 		CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		CharacterMovementIns->SetMovementMode(EMovementMode::MOVE_Walking, 0);
 		bClimbing = false;
@@ -801,6 +807,7 @@ void UXClimbComponent::ClimbOrVault()
 	//bClimbing = GetWallTrace(Hit);
 	if (!bClimbing)
 	{
+
 		bVerifyClimbing = true;
 		int check = TraceCaculation();
 		//Only Thick Do
@@ -960,7 +967,7 @@ float UXClimbComponent::IKFootTrace(const FName& SocketName, FVector& OutHitLoca
 		//float Z = (HitLocation - SocketLocation).Z;
 
 		FootTraceOffset = Z - IKHipOffset + 5.0f;
-		UE_LOG(LogTemp, Warning, TEXT("FootTraceOffset:%f"), FootTraceOffset);
+		//UE_LOG(LogTemp, Warning, TEXT("FootTraceOffset:%f"), FootTraceOffset);
 	}
 	return FootTraceOffset;
 }
@@ -1042,10 +1049,10 @@ void UXClimbComponent::AutoClimb()
 {
 	if (SprintCheck())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AutoClimb!Go"));
+		//UE_LOG(LogTemp, Warning, TEXT("AutoClimb!Go"));
 		if (bToggleSprintClimb)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AutoClimb!"));
+			//UE_LOG(LogTemp, Warning, TEXT("AutoClimb!"));
 			ClimbOrVault();
 		}
 	}

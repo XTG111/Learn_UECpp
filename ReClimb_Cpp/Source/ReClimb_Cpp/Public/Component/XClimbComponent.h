@@ -154,6 +154,9 @@ private:
 	FVector LeftLocation;
 	FVector RightLocation;
 
+	FVector LeftHandLocation;
+	FVector RightHandLocation;
+
 	FVector CaftLeftLocation;
 	FVector CaftRightLocation;
 
@@ -163,6 +166,7 @@ private:
 
 	//获取成员变量
 public:
+	inline bool GetbClimbing() { return bClimbing; }
 	inline AXClimbCharacter* GetCharacter() { return CharacterRef; }
 	inline FVector GetWallHeight() { return WallHeight; }
 	inline FVector GetWallLocation() { return WallLocation; }
@@ -174,6 +178,8 @@ public:
 	inline FRotator GetIKRightFootRotation() { return IKRightFootRotation; }
 	inline FVector GetLeftLocation() { return LeftLocation; }
 	inline FVector GetRightLocation() { return RightLocation; }
+	inline FVector GetLeftHandLocation() { return LeftHandLocation; }
+	inline FVector GetRightHandLocation() { return RightHandLocation; }
 	inline FVector GetCaftLeftLocation() { return CaftLeftLocation; }
 	inline FVector GetCaftRightLocation() { return CaftRightLocation; }
 

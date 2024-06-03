@@ -34,6 +34,15 @@ private:
 	//Direction
 	UPROPERTY(BlueprintReadOnly, Category = MoveControl, meta = (AllowPrivateAccess = "true"))
 		float Direction;
+	//HandIK
+	UPROPERTY(BlueprintReadOnly, Category = FootIK, meta = (AllowPrivateAccess = "true"))
+		FVector LeftHandLocationIK;
+	UPROPERTY(BlueprintReadOnly, Category = FootIK, meta = (AllowPrivateAccess = "true"))
+		FVector RightHandLocationIK;
+
+	UPROPERTY(BlueprintReadOnly, Category = FootIK, meta = (AllowPrivateAccess = "true"))
+		bool bClimbing;
+
 	//FootIK
 	UPROPERTY(BlueprintReadOnly, Category = FootIK, meta = (AllowPrivateAccess = "true"))
 		FVector LeftFootLocationIK;

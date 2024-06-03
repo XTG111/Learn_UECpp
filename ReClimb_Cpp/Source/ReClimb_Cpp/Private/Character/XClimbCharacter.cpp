@@ -78,6 +78,7 @@ void AXClimbCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Shift", IE_Released, this, &AXClimbCharacter::SlowSpeed);
 
 	PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &AXClimbCharacter::Climb);
+	PlayerInputComponent->BindAction("Climb", IE_Released, this, &AXClimbCharacter::Climb);
 
 }
 
@@ -143,7 +144,13 @@ void AXClimbCharacter::SlowSpeed()
 
 void AXClimbCharacter::Climb()
 {
+	bInClimb = true;
 	ClimbComponent->ClimbOrVault();
+}
+
+void AXClimbCharacter::ReClimb()
+{
+	bInClimb = false;
 }
 
 void AXClimbCharacter::DelayStopMontage(float MontageBlendOutTime, UAnimMontage* Montage)

@@ -22,3 +22,34 @@ enum class EClimbingStates : uint8
 	ECS_HighClimb UMETA(DisplayName = "HighClimb"),
 	ECS_HighJumpClimb UMETA(DisplayName = "HighJumpClimb"),
 };
+
+//AISenseEnum
+UENUM(BlueprintType)
+enum class EAISense : uint8
+{
+	EASe_None UMETA(DisplayName = "None"),
+	EASe_Sight UMETA(DisplayName = "Sight"),
+	EASe_Hearing UMETA(DisplayName = "Hearing"),
+	EASe_Damaging UMETA(DisplayName = "Damaging")
+};
+
+//AIStateEnum
+UENUM(BlueprintType)
+enum class EAIState : uint8
+{
+	EASt_Passive UMETA(DisplayName = "Passive"),
+	EASt_Attacking UMETA(DisplayName = "Attacking"),
+	EASt_Frozen UMETA(DisplayName = "Frozen"),
+	EASt_Investingating UMETA(DisplayName = "Investingating"),
+	EASt_Dead UMETA(DisplayeName = "Dead")
+};
+
+//AIMovementEnum
+UENUM(BlueprintType)
+enum class EAIMovement : uint8
+{
+	EAM_Idle UMETA(DisplayName = "Idle"),
+	EAM_Walking UMETA(DisplayName = "Walking"),
+	EAM_Joggiing UMETA(DisplayName = "Jogging"),
+	EAM_Sprinting UMETA(DisplayeName = "Sprinting")
+};

@@ -68,6 +68,7 @@ public:
 	void FastSpeed();
 	void SlowSpeed();
 	void Climb();
+	void ReClimb();
 
 	//Í£Ö¹ÃÉÌ«Ææ¶¯»­
 	void StopMontage(class UAnimMontage* Montage, float DelayBeforeStoppingMontage, float MontageBlendOutTime);
@@ -78,4 +79,6 @@ public:
 	*	---   ÂäµØ¶¯»­²¥·Å   ---
 	*/
 	void OnLanded(const FHitResult& Hit);
+
+	bool bInClimb;
 };
