@@ -11,6 +11,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "AI/XAI_Character.h"
 
 
 AXAIController::AXAIController()
@@ -77,6 +78,7 @@ void AXAIController::BeginPlay()
 void AXAIController::SetStateAsPassive()
 {
 	ClearFocus(EAIFocusPriority::Default);
+	AttackTargetActor = nullptr;
 	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Passive));
 }
 
@@ -88,6 +90,7 @@ void AXAIController::SetStateAsInvestigatinig(const FVector& Location)
 
 void AXAIController::SetStateAsAttacking(AActor* AttackTarget)
 {
+	AttackTargetActor = AttackTarget;
 	Blackboard->SetValueAsObject(AttackTargetKeyName, AttackTarget);
 	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
 }
@@ -97,6 +100,16 @@ void AXAIController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 	RunBehaviorTree(BehaviorTree);
 	SetStateAsPassive();
+	float AttackRadius;
+	float DefendRadius;
+	AXAI_Character* ControlledPawn = Cast<AXAI_Character>(InPawn);
+	if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+	{
+		IXAIInterface::Execute_GetIdealRange(ControlledPawn, AttackRadius, DefendRadius);
+		Blackboard->SetValueAsFloat(AttackRangeKeyName, AttackRadius);
+		Blackboard->SetValueAsFloat(DefendRangeKeyName, DefendRadius);
+	}
+
 }
 
 
@@ -241,9 +254,9 @@ void AXAIController::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 			HandleSenseDamage(it);
 		}
 
-		if (!StimulusSight.WasSuccessfullySensed() && !StimulusSound.WasSuccessfullySensed() && !StimulusDamage.WasSuccessfullySensed())
-		{
-			SetStateAsPassive();
-		}
+		//if (!StimulusSight.WasSuccessfullySensed() && !StimulusSound.WasSuccessfullySensed() && !StimulusDamage.WasSuccessfullySensed())
+		//{
+		//	SetStateAsPassive();
+		//}
 	}
 }

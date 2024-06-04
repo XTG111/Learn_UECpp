@@ -40,7 +40,6 @@ private:
 		UAnimMontage* AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class AXLineBase* Patrol;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class AXSwordBase* Sword;
 
@@ -52,7 +51,7 @@ public:
 public:
 	class AXLineBase* GetPatrolRoute_Implementation() override;
 	float SetMovementSpeed_Implementation(EAIMovement SpeedEnum) override;
-
+	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius);
 public:
 
 	FOnAttackEnd CallOnAttackEndCall;

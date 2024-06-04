@@ -38,11 +38,18 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 		class UAISenseConfig_Damage* DamageConfig;
 
+	//AttackTarget
+	UPROPERTY(BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+		AActor* AttackTargetActor;
+
 	FName AttackTargetKeyName = TEXT("AttackTarget");
 	FName AIStateKeyName = TEXT("AIState");
 	FName PointOfInterestKeyName = TEXT("PointOfInterest");
+	FName AttackRangeKeyName = TEXT("AttackRange");
+	FName DefendRangeKeyName = TEXT("DefendRange");
 public:
-	inline UAIPerceptionComponent* GetAIPerceptionComponent() { return AIPerceptionComponent; };
+	inline UAIPerceptionComponent* GetAIPerceptionComponent() { return AIPerceptionComponent; }
+	AActor* GetAttackTargetActor() { return AttackTargetActor; }
 
 public:
 	virtual void OnPossess(APawn* InPawn) override;

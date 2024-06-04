@@ -17,7 +17,7 @@ EBTNodeResult::Type UXBTTask_MoveFollowSpline::ExecuteTask(UBehaviorTreeComponen
 			AXLineBase* Patrol = IXAIInterface::Execute_GetPatrolRoute(ControlledPawn);
 			if (Patrol)
 			{
-				//C
+				//
 				FVector Location = Patrol->GetSplinePointAsWorldPosition();
 				EPathFollowingRequestResult::Type type = AICon->MoveToLocation(Location, 10.0f, false);
 				if (type == EPathFollowingRequestResult::AlreadyAtGoal)

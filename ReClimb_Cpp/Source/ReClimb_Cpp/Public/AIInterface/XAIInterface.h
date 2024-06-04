@@ -27,4 +27,6 @@ public:
 		class AXLineBase* GetPatrolRoute();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		float SetMovementSpeed(EAIMovement SpeedEnum);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void GetIdealRange(float& AttackRadius, float& DefendRadius);
 };

@@ -1,17 +1,18 @@
 {
-	"FileVersion": 3,
-	"EngineAssociation": "4.27",
-	"Category": "",
-	"Description": "",
-	"Modules": [
-		{
-			"Name": "ReClimb_Cpp",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"AIModule"
-			]
-		}
-	]
+  "FileVersion": 3,
+  "EngineAssociation": "4.27",
+  "Category": "",
+  "Description": "",
+  "Modules": [
+    {
+      "Name": "ReClimb_Cpp",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "Engine",
+        "AIModule",
+        "GameplayTasks"
+      ]
+    }
+  ]
 }

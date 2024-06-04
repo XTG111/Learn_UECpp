@@ -61,6 +61,12 @@ float AXAI_Character::SetMovementSpeed_Implementation(EAIMovement SpeedEnum)
 	return res;
 }
 
+void AXAI_Character::GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius)
+{
+	AttackRadius = 150.0f;
+	DefendRadius = 350.0f;
+}
+
 void AXAI_Character::Attack()
 {
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();

@@ -17,6 +17,5 @@ public:
 public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		//TSubclassOf<FBlackboardKeySelector> AttackTargetKey;
 		FBlackboardKeySelector AttackTargetKey;
 };
