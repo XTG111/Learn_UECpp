@@ -4,6 +4,7 @@
 #include "AITask/XBTTask_SetMovementSpeed.h"
 #include "AI/XAIController.h"
 #include "AI/XAI_Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 EBTNodeResult::Type UXBTTask_SetMovementSpeed::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -13,7 +14,8 @@ EBTNodeResult::Type UXBTTask_SetMovementSpeed::ExecuteTask(UBehaviorTreeComponen
 		AXAI_Character* ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
 		if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
 		{
-			IXAIInterface::Execute_SetMovementSpeed(ControlledPawn, SpeedEnum);
+			float res = IXAIInterface::Execute_SetMovementSpeed(ControlledPawn, SpeedEnum);
+			ControlledPawn->GetCharacterMovement()->MaxWalkSpeed = res;
 			return EBTNodeResult::Succeeded;
 		}
 	}

@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlueprintBase.h"
-#include "XBTTask_WieldWeapon.generated.h"
+#include "XBTTask_UnEquipWeapon.generated.h"
 
 /**
  *
  */
 UCLASS()
-class RECLIMB_CPP_API UXBTTask_WieldWeapon : public UBTTask_BlueprintBase
+class RECLIMB_CPP_API UXBTTask_UnEquipWeapon : public UBTTask_BlueprintBase
 {
 	GENERATED_BODY()
 public:

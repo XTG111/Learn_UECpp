@@ -16,7 +16,10 @@ EBTNodeResult::Type UXBTTask_DefaultAttack::ExecuteTask(UBehaviorTreeComponent& 
 			FinishDelegate.BindUObject(this, &UXBTTask_DefaultAttack::FinishLast, &OwnerComp);
 			ControlledPawn->CallOnAttackEndCall.Clear();
 			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_DefaultAttack::Finish);
-			ControlledPawn->Attack();
+			if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+			{
+				IXAIInterface::Execute_Attack(ControlledPawn);
+			}
 		}
 	}
 	return EBTNodeResult::InProgress;

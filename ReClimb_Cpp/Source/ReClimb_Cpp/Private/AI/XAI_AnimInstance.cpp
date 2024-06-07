@@ -11,7 +11,7 @@ void UXAI_AnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	XAINPC = Cast<AXAI_Character>(UGameplayStatics::GetActorOfClass(GetWorld(), AXAI_Character::StaticClass()));
+	XAINPC = Cast<AXAI_Character>(GetOwningActor());
 }
 
 void UXAI_AnimInstance::NativeUpdateAnimation(float DeltaTime)
@@ -24,7 +24,7 @@ void UXAI_AnimInstance::NativeUpdateAnimation(float DeltaTime)
 	if (IsValid(XAINPC->GetController()))
 	{
 		AXAIController* AIC = Cast<AXAIController>(XAINPC->GetController());
-		if (IsValid(AIC->GetFocusActor()))
+		if (AIC && IsValid(AIC->GetFocusActor()))
 		{
 			bIsFocusingTarget = true;
 		}

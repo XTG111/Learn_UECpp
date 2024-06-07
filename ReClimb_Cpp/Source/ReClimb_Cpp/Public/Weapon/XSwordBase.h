@@ -23,12 +23,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class USceneComponent* RootSceneComponent;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//	class USceneComponent* RootSceneComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UStaticMeshComponent* SwordMeshComp;
 
-private:
+public:
 	// 静态网格资源的路径
 	FString StaticMeshPath;
 

@@ -90,6 +90,7 @@ void AXAIController::SetStateAsInvestigatinig(const FVector& Location)
 
 void AXAIController::SetStateAsAttacking(AActor* AttackTarget)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Attacking"));
 	AttackTargetActor = AttackTarget;
 	Blackboard->SetValueAsObject(AttackTargetKeyName, AttackTarget);
 	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
@@ -98,11 +99,13 @@ void AXAIController::SetStateAsAttacking(AActor* AttackTarget)
 void AXAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+	AXAI_Character* ControlledPawn = Cast<AXAI_Character>(InPawn);
+	BehaviorTree = ControlledPawn->BehaviorTree;
 	RunBehaviorTree(BehaviorTree);
 	SetStateAsPassive();
 	float AttackRadius;
 	float DefendRadius;
-	AXAI_Character* ControlledPawn = Cast<AXAI_Character>(InPawn);
+
 	if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
 	{
 		IXAIInterface::Execute_GetIdealRange(ControlledPawn, AttackRadius, DefendRadius);
@@ -113,10 +116,11 @@ void AXAIController::OnPossess(APawn* InPawn)
 }
 
 
-void AXAIController::CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Simulus)
+bool AXAIController::CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Simulus)
 {
 	FActorPerceptionBlueprintInfo ActorInfo;
 	AIPerceptionComponent->GetActorsPerception(Actor, ActorInfo);
+
 	for (auto& it : ActorInfo.LastSensedStimuli)
 	{
 		UAISenseConfig* Res = AIPerceptionComponent->GetSenseConfig(it.Type);
@@ -127,6 +131,7 @@ void AXAIController::CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Si
 		case EAISense::EASe_None:
 			break;
 		case EAISense::EASe_Sight:
+			UE_LOG(LogTemp, Warning, TEXT("EASe_Sight"));
 			Ref = SightConfig;
 			break;
 		case EAISense::EASe_Hearing:
@@ -140,9 +145,12 @@ void AXAIController::CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Si
 		}
 		if (Res == Ref)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Res == Ref"));
 			Simulus = it;
+			return true;
 		}
 	}
+	return false;
 }
 
 EAIState AXAIController::GetCurrentState()
@@ -152,6 +160,7 @@ EAIState AXAIController::GetCurrentState()
 
 void AXAIController::HandleSenseSound(const FVector& Location)
 {
+	UE_LOG(LogTemp, Warning, TEXT("HandleSenseSound"));
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{
@@ -174,6 +183,7 @@ void AXAIController::HandleSenseSound(const FVector& Location)
 
 void AXAIController::HandleSenseSight(AActor* Actor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("HandleSenseSight"));
 	ACharacter* temp = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	bool check = temp == Cast<ACharacter>(Actor);
 	EAIState curState = GetCurrentState();
@@ -204,6 +214,7 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 
 void AXAIController::HandleSenseDamage(AActor* Actor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("HandleSenseDamage"));
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{
@@ -229,27 +240,26 @@ void AXAIController::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 	for (auto& it : UpdatedActors)
 	{
 		FAIStimulus StimulusSight;
-		CanSenseActor(it, EAISense::EASe_Sight, StimulusSight);
+		bool bSight = CanSenseActor(it, EAISense::EASe_Sight, StimulusSight);
 
 		FAIStimulus StimulusSound;
-		CanSenseActor(it, EAISense::EASe_Hearing, StimulusSound);
+		bool bSound = CanSenseActor(it, EAISense::EASe_Hearing, StimulusSound);
 
 		FAIStimulus StimulusDamage;
-		CanSenseActor(it, EAISense::EASe_Damaging, StimulusDamage);
+		bool bDamage = CanSenseActor(it, EAISense::EASe_Damaging, StimulusDamage);
 
-		if (StimulusSight.WasSuccessfullySensed())
+		if (bSight)
 		{
 			HandleSenseSight(it);
 		}
 
-
-		if (StimulusSound.WasSuccessfullySensed())
+		if (bSound)
 		{
 			HandleSenseSound(StimulusSound.StimulusLocation);
 		}
 
 
-		if (StimulusDamage.WasSuccessfullySensed())
+		if (bDamage)
 		{
 			HandleSenseDamage(it);
 		}

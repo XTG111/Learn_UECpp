@@ -29,4 +29,10 @@ public:
 		float SetMovementSpeed(EAIMovement SpeedEnum);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void GetIdealRange(float& AttackRadius, float& DefendRadius);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void EquipWeapon();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void UnEquipWeapon();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void Attack();
 };

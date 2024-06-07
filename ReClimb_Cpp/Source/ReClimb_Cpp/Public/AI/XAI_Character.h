@@ -12,8 +12,8 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWieldSword);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSheathSword);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEquipWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnEquipWeapon);
 UCLASS()
 class RECLIMB_CPP_API AXAI_Character : public ACharacter, public IXAIInterface
 {
@@ -31,7 +31,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* SwordBegin;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
@@ -40,35 +40,34 @@ private:
 		UAnimMontage* AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class AXLineBase* Patrol;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		class AXSwordBase* Sword;
 
-	bool bIsWiledSword = false;
+	UPROPERTY(EditAnywhere, Category = "AI")
+		class UBehaviorTree* BehaviorTree;
+
+
+	bool bIsWiledWeapon = false;
 public:
-	inline bool GetIsWiledSword() { return bIsWiledSword; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<AActor> Sword;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AXSwordBase* Weapon;
+
+	inline bool GetIsWiledWeapon() { return bIsWiledWeapon; }
+
+	UFUNCTION(BlueprintCallable)
+		void SetIsWiledWeapon(bool bSet);
 
 	//Interface
 public:
 	class AXLineBase* GetPatrolRoute_Implementation() override;
 	float SetMovementSpeed_Implementation(EAIMovement SpeedEnum) override;
-	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius);
+	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius) override;
+	void EquipWeapon_Implementation() override;
+	void UnEquipWeapon_Implementation() override;
+	void Attack_Implementation() override;
 public:
 
 	FOnAttackEnd CallOnAttackEndCall;
-	FOnWieldSword CallOnWieldSword;
-	FOnSheathSword CallOnSheathSword;
-
-	/**     PlayMontage   **/
-	//Attack
-	void Attack();
-	UFUNCTION()
-		void EndAttackMontage(UAnimMontage* Montage, bool bInterrupted);
-	//Spawn Sword
-	void WireldSword();
-	UFUNCTION()
-		void EndWieldMontage(UAnimMontage* Montage, bool bInterrupted);
-	//Spawn Sword
-	void SheathSword();
-	UFUNCTION()
-		void EndSheathMontage(UAnimMontage* Montage, bool bInterrupted);
+	FOnEquipWeapon CallOnEquipWeapon;
+	FOnUnEquipWeapon CallOnUnEquipWeapon;
 };

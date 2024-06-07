@@ -11,7 +11,7 @@ bool UXBTDecorator_IsWieldingSword::CalculateRawConditionValue(UBehaviorTreeComp
 	if (AICon)
 	{
 		AXAI_Character* ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
-		if (ControlledPawn->GetIsWiledSword())
+		if (ControlledPawn->GetIsWiledWeapon())
 		{
 			return true;
 		}

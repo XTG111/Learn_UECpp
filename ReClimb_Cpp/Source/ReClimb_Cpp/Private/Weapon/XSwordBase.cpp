@@ -12,28 +12,19 @@ AXSwordBase::AXSwordBase()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
-	RootComponent = RootSceneComponent;
+	/*RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	RootComponent = RootSceneComponent;*/
 
 	SwordMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SwordMesh"));
-	SwordMeshComp->SetupAttachment(RootComponent);
+	RootComponent = SwordMeshComp;
 
 	SwordMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	StaticMeshPath = TEXT("StaticMesh'/Game/Weapon_Pack/Mesh/Weapons/Weapons_Kit/SM_Sword.SM_Sword'");
-
 }
 
 // Called when the game starts or when spawned
 void AXSwordBase::BeginPlay()
 {
 	Super::BeginPlay();
-	UStaticMesh* StaticMesh = LoadObject<UStaticMesh>(nullptr, *StaticMeshPath);
-	if (SwordMeshComp && StaticMesh)
-	{
-		// 将静态网格资源分配给静态网格组件
-		SwordMeshComp->SetStaticMesh(StaticMesh);
-	}
 }
 
 // Called every frame

@@ -20,7 +20,7 @@ AXAI_Character::AXAI_Character()
 void AXAI_Character::BeginPlay()
 {
 	Super::BeginPlay();
-	Patrol = Cast<AXLineBase>(UGameplayStatics::GetActorOfClass(GetWorld(), AXLineBase::StaticClass()));
+	//Patrol = Cast<AXLineBase>(UGameplayStatics::GetActorOfClass(GetWorld(), AXLineBase::StaticClass()));
 }
 
 // Called every frame
@@ -67,57 +67,23 @@ void AXAI_Character::GetIdealRange_Implementation(float& AttackRadius, float& De
 	DefendRadius = 350.0f;
 }
 
-void AXAI_Character::Attack()
+void AXAI_Character::EquipWeapon_Implementation()
 {
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	PlayAnimMontage(AttackMontage);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_Character::EndAttackMontage);
+
 }
 
-void AXAI_Character::EndAttackMontage(UAnimMontage* Montage, bool bInterrupted)
+void AXAI_Character::UnEquipWeapon_Implementation()
 {
-	CallOnAttackEndCall.Broadcast();
+
 }
 
-void AXAI_Character::WireldSword()
+void AXAI_Character::Attack_Implementation()
 {
-	bIsWiledSword = true;
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	PlayAnimMontage(SwordBegin);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_Character::EndWieldMontage);
-
-	Sword = GetWorld()->SpawnActor<AXSwordBase>(AXSwordBase::StaticClass(), GetActorTransform());
-
-	FAttachmentTransformRules AttachmentRules(
-		EAttachmentRule::SnapToTarget,
-		EAttachmentRule::SnapToTarget,
-		EAttachmentRule::SnapToTarget,
-		true
-	);
-
-	Sword->AttachToComponent(
-		GetMesh(),
-		AttachmentRules,
-		FName(TEXT("WeaponHandR"))
-	);
 }
 
-void AXAI_Character::EndWieldMontage(UAnimMontage* Montage, bool bInterrupted)
+void AXAI_Character::SetIsWiledWeapon(bool bSet)
 {
-	CallOnWieldSword.Broadcast();
+	bIsWiledWeapon = bSet;
 }
 
-void AXAI_Character::SheathSword()
-{
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	PlayAnimMontage(SwordEnd);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_Character::EndSheathMontage);
-	bIsWiledSword = false;
-}
-
-void AXAI_Character::EndSheathMontage(UAnimMontage* Montage, bool bInterrupted)
-{
-	Sword->Destroy();
-	CallOnSheathSword.Broadcast();
-}
 

@@ -64,7 +64,7 @@ public:
 	//AI Sense
 
 	//Check Sense Result
-	void CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Simulus);
+	bool CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Simulus);
 	//Get Current State
 	EAIState GetCurrentState();
 	void HandleSenseSound(const FVector& Location);
