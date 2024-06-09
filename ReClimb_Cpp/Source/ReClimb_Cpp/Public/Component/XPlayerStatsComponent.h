@@ -25,12 +25,25 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-	float Health = 100.0f;
-	float Stamina = 100.0f;
+	float MaxHealth = 100.0f;
+	float MaxStamina = 100.0f;
+
+	float CurHealth = 100.0f;
+	float CurStamina = 100.0f;
+
+	bool bIsDeath = false;
 
 public:
-	inline float GetHealth() { return Health; }
-	inline float GetStamina() { return Stamina; }
-	inline void SetHealth(float value) { Health = value; }
-	inline void SetStamina(float value) { Stamina = value; }
+	inline float GetMaxHealth() { return MaxHealth; }
+	inline float GetMaxStamina() { return MaxStamina; }
+	inline void SetMaxHealth(float value) { MaxHealth = value; }
+	inline void SetMaxStamina(float value) { MaxStamina = value; }
+
+	inline float GetCurHealth() { return CurHealth; }
+	inline float GetCurStamina() { return CurStamina; }
+	inline void SetCurHealth(float value) { CurHealth = value; }
+	inline void SetCurStamina(float value) { CurStamina = value; }
+
+	inline float GetIsDeath() { return bIsDeath; }
+	inline void SetIsDeath(bool bdeath) { bIsDeath = bdeath; }
 };

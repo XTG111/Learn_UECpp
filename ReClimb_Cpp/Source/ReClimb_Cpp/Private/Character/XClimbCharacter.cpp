@@ -12,6 +12,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Animation/AnimMontage.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "AI/XAI_GunCharacter.h"
 
 
 // Sets default values
@@ -41,6 +43,13 @@ AXClimbCharacter::AXClimbCharacter()
 
 	ClimbComponent = CreateDefaultSubobject<UXClimbComponent>(TEXT("ClimbComponent"));
 	PlayerStatesComponent = CreateDefaultSubobject<UXPlayerStatsComponent>(TEXT("PlayerStatesComponent"));
+
+
+	//TraceChannel AITarget
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 
 }
 
@@ -153,6 +162,12 @@ void AXClimbCharacter::ReClimb()
 	bInClimb = false;
 }
 
+void AXClimbCharacter::Attack()
+{
+	AXAI_GunCharacter* TargetActor = Cast<AXAI_GunCharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), AXAI_GunCharacter::StaticClass()));
+	UGameplayStatics::ApplyDamage(TargetActor, 20.0f, nullptr, this, nullptr);
+}
+
 void AXClimbCharacter::DelayStopMontage(float MontageBlendOutTime, UAnimMontage* Montage)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -224,19 +239,19 @@ void AXClimbCharacter::OnLanded(const FHitResult& Hit)
 	bool checkZvelocity = ZVelocity >= -1000.0f && ZVelocity <= -750.f;
 	if (checkZvelocity)
 	{
-		float Health = PlayerStatesComponent->GetHealth() - 10.0f;
-		float Stamina = PlayerStatesComponent->GetStamina() - 15.0f;
-		PlayerStatesComponent->SetHealth(Health);
-		PlayerStatesComponent->SetStamina(Stamina);
+		float Health = PlayerStatesComponent->GetCurHealth() - 10.0f;
+		float Stamina = PlayerStatesComponent->GetCurStamina() - 15.0f;
+		PlayerStatesComponent->SetCurHealth(Health);
+		PlayerStatesComponent->SetCurStamina(Stamina);
 	}
 	else
 	{
 		if (ZVelocity < -1000.0f)
 		{
-			float Health = PlayerStatesComponent->GetHealth() - 15.0f;
-			float Stamina = PlayerStatesComponent->GetStamina() - 25.0f;
-			PlayerStatesComponent->SetHealth(Health);
-			PlayerStatesComponent->SetStamina(Stamina);
+			float Health = PlayerStatesComponent->GetCurHealth() - 15.0f;
+			float Stamina = PlayerStatesComponent->GetCurStamina() - 25.0f;
+			PlayerStatesComponent->SetCurHealth(Health);
+			PlayerStatesComponent->SetCurStamina(Stamina);
 		}
 	}
 }

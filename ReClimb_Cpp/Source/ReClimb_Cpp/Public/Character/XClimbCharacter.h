@@ -70,6 +70,8 @@ public:
 	void Climb();
 	void ReClimb();
 
+	void Attack();
+
 	//Í£Ö¹ÃÉÌ«Ææ¶¯»­
 	void StopMontage(class UAnimMontage* Montage, float DelayBeforeStoppingMontage, float MontageBlendOutTime);
 	UFUNCTION()

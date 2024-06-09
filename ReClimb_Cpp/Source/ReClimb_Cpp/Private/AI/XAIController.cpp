@@ -90,7 +90,7 @@ void AXAIController::SetStateAsInvestigatinig(const FVector& Location)
 
 void AXAIController::SetStateAsAttacking(AActor* AttackTarget)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attacking"));
+	//UE_LOG(LogTemp, Warning, TEXT("Attacking"));
 	AttackTargetActor = AttackTarget;
 	Blackboard->SetValueAsObject(AttackTargetKeyName, AttackTarget);
 	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
@@ -160,7 +160,7 @@ EAIState AXAIController::GetCurrentState()
 
 void AXAIController::HandleSenseSound(const FVector& Location)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleSenseSound"));
+	//UE_LOG(LogTemp, Warning, TEXT("HandleSenseSound"));
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{
@@ -183,9 +183,9 @@ void AXAIController::HandleSenseSound(const FVector& Location)
 
 void AXAIController::HandleSenseSight(AActor* Actor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleSenseSight"));
+	//UE_LOG(LogTemp, Warning, TEXT("HandleSenseSight"));
 	ACharacter* temp = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	bool check = temp == Cast<ACharacter>(Actor);
+	bool check = true;//temp == Cast<ACharacter>(Actor);
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{
@@ -214,7 +214,7 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 
 void AXAIController::HandleSenseDamage(AActor* Actor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleSenseDamage"));
+	//UE_LOG(LogTemp, Warning, TEXT("HandleSenseDamage"));
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{

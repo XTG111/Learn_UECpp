@@ -31,6 +31,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+		void ReceivedDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* SwordBegin;
@@ -65,9 +68,16 @@ public:
 	void EquipWeapon_Implementation() override;
 	void UnEquipWeapon_Implementation() override;
 	void Attack_Implementation() override;
+	float GetCurrentHealth_Implementation() override;
+	float GetMaxHealth_Implementation() override;
+	void Heal_Implementation(float healpercent) override;
 public:
 
 	FOnAttackEnd CallOnAttackEndCall;
 	FOnEquipWeapon CallOnEquipWeapon;
 	FOnUnEquipWeapon CallOnUnEquipWeapon;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+		class UXPlayerStatsComponent* AIStatesComponent;
 };
