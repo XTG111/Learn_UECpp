@@ -44,12 +44,6 @@ void AXAI_Character::BeginPlay()
 	{
 		EnemyHPWidget->SetWidget(CreateWidget<UUserWidget>(GetWorld(), HPWidget));
 	}
-	if (AIStatesComponent)
-	{
-		AIStatesComponent->OnDeath.AddDynamic(this, &AXAI_Character::CallOnDeath);
-		AIStatesComponent->OnBlocked.AddDynamic(this, &AXAI_Character::CallOnBlocked);
-		AIStatesComponent->OnDamageResponse.AddDynamic(this, &AXAI_Character::CallOnDamageResponse);
-	}
 }
 
 // Called every frame
@@ -151,8 +145,6 @@ float AXAI_Character::Heal_Implementation(float Amount)
 void AXAI_Character::CallOnDeath()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AI On Death"));
-	GetMesh()->SetSimulatePhysics(true);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AXAI_Character::CallOnBlocked(bool bCanbeParried)

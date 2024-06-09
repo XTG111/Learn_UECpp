@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/UserDefinedStruct.h"
 #include "Engine/DataTable.h"
+#include "ReClimb_Cpp/XHeadFile/XEnumType.h"
 #include "XStructInfo.generated.h"
 
 
@@ -13,8 +14,8 @@ USTRUCT(BlueprintType)
 struct FClimbAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ClimbAnim")
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ClimbAnim")
 		TArray<class UAnimMontage*> HighClimb;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ClimbAnim")
 		TArray<UAnimMontage*> RunHighClimb;
@@ -33,8 +34,8 @@ USTRUCT(BlueprintType)
 struct FLandAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandAnim")
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandAnim")
 		TArray<UAnimMontage*> LowLand;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandAnim")
 		TArray<UAnimMontage*> HighLand;
@@ -50,8 +51,8 @@ USTRUCT(BlueprintType)
 struct FVaultAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VaultAnim")
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VaultAnim")
 		TArray<UAnimMontage*> LowVault;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VaultAnim")
 		TArray<UAnimMontage*> RunLowVault;
@@ -70,13 +71,36 @@ USTRUCT(BlueprintType)
 struct FAnims : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
 		FClimbAnims ClimbAnims;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
 		FLandAnims LandAnims;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
 		FVaultAnims VaultAnims;
+};
+
+//DamageInfo
+USTRUCT(BlueprintType)
+struct FDamageInfo : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		float Amount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		EDamageType DamageType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		EDamageResponse DamageResponse;
+	//Œﬁ∑®∂„±‹∏√…À∫¶
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		bool bShouldDamageInvincible;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		bool bCanBeBlocked;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		bool bCanBeParried;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+		bool bShouldForceInterrupt;
 };
 
 /**

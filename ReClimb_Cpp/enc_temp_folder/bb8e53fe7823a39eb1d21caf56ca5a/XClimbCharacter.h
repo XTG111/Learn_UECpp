@@ -81,7 +81,6 @@ public:
 	void ReClimb();
 
 	void Attack();
-	void DoHeal();
 
 	//Í£Ö¹ÃÉÌ«Ææ¶¯»­
 	void StopMontage(class UAnimMontage* Montage, float DelayBeforeStoppingMontage, float MontageBlendOutTime);

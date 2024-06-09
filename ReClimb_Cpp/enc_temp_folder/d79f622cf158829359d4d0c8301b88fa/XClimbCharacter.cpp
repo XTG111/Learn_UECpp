@@ -95,7 +95,6 @@ void AXClimbCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &AXClimbCharacter::Climb);
 	PlayerInputComponent->BindAction("Climb", IE_Released, this, &AXClimbCharacter::Climb);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AXClimbCharacter::Attack);
-	PlayerInputComponent->BindAction("Heal", IE_Pressed, this, &AXClimbCharacter::DoHeal);
 
 }
 
@@ -201,7 +200,7 @@ void AXClimbCharacter::Attack()
 	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
 
 	FVector Start = GetActorLocation();
-	FVector End = Start + GetActorForwardVector() * 1000.0f;
+	FVector End = Start + GetActorForwardVector() * 100.0f;
 	ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel2);
 	FHitResult HitRes;
 	bool bIsHit = UKismetSystemLibrary::SphereTraceSingle(
@@ -222,15 +221,9 @@ void AXClimbCharacter::Attack()
 		if (AICha && AICha->Implements<UXDamageInterface>())
 		{
 			IXDamageInterface::Execute_TakeDamage(AICha, DamageInfo);
-			UGameplayStatics::ApplyDamage(AICha, 5.0f, nullptr, this, nullptr);
 		}
 	}
 
-}
-
-void AXClimbCharacter::DoHeal()
-{
-	IXDamageInterface::Execute_Heal(this, 10.0f);
 }
 
 void AXClimbCharacter::DelayStopMontage(float MontageBlendOutTime, UAnimMontage* Montage)
@@ -324,8 +317,6 @@ void AXClimbCharacter::OnLanded(const FHitResult& Hit)
 void AXClimbCharacter::CallOnDeath()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Character On Death"));
-	GetMesh()->SetSimulatePhysics(true);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AXClimbCharacter::CallOnBlocked(bool bCanbeParried)

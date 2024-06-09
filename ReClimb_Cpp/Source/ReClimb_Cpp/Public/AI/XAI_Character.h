@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include <ReClimb_Cpp/XHeadFile/XEnumType.h>
+#include "Struct/XStructInfo.h"
 #include "AIInterface/XAIInterface.h"
+#include "DamageSystem/XDamageInterface.h"
 #include "BehaviorTree/Tasks/BTTask_BlueprintBase.h"
 #include "XAI_Character.generated.h"
 
@@ -15,7 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEquipWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnEquipWeapon);
 UCLASS()
-class RECLIMB_CPP_API AXAI_Character : public ACharacter, public IXAIInterface
+class RECLIMB_CPP_API AXAI_Character : public ACharacter, public IXAIInterface, public IXDamageInterface
 {
 	GENERATED_BODY()
 
@@ -41,7 +42,7 @@ public:
 		UAnimMontage* SwordEnd;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* AttackMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere)
 		class AXLineBase* Patrol;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
@@ -52,8 +53,12 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<AActor> Sword;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere)
 		class AXSwordBase* Weapon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<UUserWidget> HPWidget;
+	UPROPERTY(VisibleAnywhere)
+		class UWidgetComponent* EnemyHPWidget;
 
 	inline bool GetIsWiledWeapon() { return bIsWiledWeapon; }
 
@@ -68,16 +73,30 @@ public:
 	void EquipWeapon_Implementation() override;
 	void UnEquipWeapon_Implementation() override;
 	void Attack_Implementation() override;
-	float GetCurrentHealth_Implementation() override;
-	float GetMaxHealth_Implementation() override;
-	void Heal_Implementation(float healpercent) override;
+
+	//DamageInterface
+	float GetCurrentHealth_Implementation();
+	float GetMaxHealth_Implementation();
+	bool TakeDamage_Implementation(FDamageInfo DamageInfo);
+	float Heal_Implementation(float Amount);
+
 public:
 
 	FOnAttackEnd CallOnAttackEndCall;
 	FOnEquipWeapon CallOnEquipWeapon;
 	FOnUnEquipWeapon CallOnUnEquipWeapon;
 
+	//UFUNCTION Bind Delegate
+public:
+	UFUNCTION()
+		void CallOnDeath();
+	UFUNCTION()
+		void CallOnBlocked(bool bCanbeParried);
+	UFUNCTION()
+		void CallOnDamageResponse(EDamageResponse DamageResponse);
+
 private:
 	UPROPERTY(VisibleAnywhere)
 		class UXPlayerStatsComponent* AIStatesComponent;
+
 };

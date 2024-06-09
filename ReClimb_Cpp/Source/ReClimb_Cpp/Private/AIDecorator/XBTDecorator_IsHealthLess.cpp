@@ -12,10 +12,10 @@ bool UXBTDecorator_IsHealthLess::CalculateRawConditionValue(UBehaviorTreeCompone
 	if (AICon)
 	{
 		AXAI_Character* ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
-		if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+		if (ControlledPawn && ControlledPawn->Implements<UXDamageInterface>())
 		{
-			float curhp = IXAIInterface::Execute_GetCurrentHealth(ControlledPawn);
-			float maxhp = IXAIInterface::Execute_GetMaxHealth(ControlledPawn);
+			float curhp = IXDamageInterface::Execute_GetCurrentHealth(ControlledPawn);
+			float maxhp = IXDamageInterface::Execute_GetMaxHealth(ControlledPawn);
 
 			if (curhp / maxhp <= Limit) return true;
 		}

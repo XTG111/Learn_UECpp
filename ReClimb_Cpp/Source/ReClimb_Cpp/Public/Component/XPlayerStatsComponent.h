@@ -7,6 +7,10 @@
 #include "XPlayerStatsComponent.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCallOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCallOnDamageResponse, EDamageResponse, DamageResponse);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCallOnBlocked, bool, bCanbeParried);
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class RECLIMB_CPP_API UXPlayerStatsComponent : public UActorComponent
 {
@@ -25,6 +29,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+	UPROPERTY(VisibleAnywhere)
+		class AXAI_Character* AICharacter;
+
 	float MaxHealth = 100.0f;
 	float MaxStamina = 100.0f;
 
@@ -32,6 +39,9 @@ private:
 	float CurStamina = 100.0f;
 
 	bool bIsDeath = false;
+	bool bIsInvincible = false;
+	bool bIsInterruptible = true;
+	bool bIsBlocking = false;
 
 public:
 	inline float GetMaxHealth() { return MaxHealth; }
@@ -41,9 +51,20 @@ public:
 
 	inline float GetCurHealth() { return CurHealth; }
 	inline float GetCurStamina() { return CurStamina; }
-	inline void SetCurHealth(float value) { CurHealth = value; }
+	void SetCurHealth(float value);
 	inline void SetCurStamina(float value) { CurStamina = value; }
 
 	inline float GetIsDeath() { return bIsDeath; }
 	inline void SetIsDeath(bool bdeath) { bIsDeath = bdeath; }
+
+public:
+	float Heal(float Amount);
+	bool TakeDamage(struct FDamageInfo DamageInfo);
+	int CanBeDamaged(bool bShouldDamageInvincible, bool bCanbeBlocked);
+
+public:
+	FCallOnDeath OnDeath;
+	FCallOnDamageResponse OnDamageResponse;
+	FCallOnBlocked OnBlocked;
+
 };

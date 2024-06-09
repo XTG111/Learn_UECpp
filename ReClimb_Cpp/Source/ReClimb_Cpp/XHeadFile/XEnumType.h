@@ -53,3 +53,25 @@ enum class EAIMovement : uint8
 	EAM_Joggiing UMETA(DisplayName = "Jogging"),
 	EAM_Sprinting UMETA(DisplayeName = "Sprinting")
 };
+
+//DamageType
+UENUM(BlueprintType)
+enum class EDamageType : uint8
+{
+	EDT_None UMETA(DisplayName = "None"),
+	EDT_Melee UMETA(DisplayName = "Melee"),
+	EDT_Projectile UMETA(DisplayName = "Projectile"),
+	EDT_Explosion UMETA(DisplayeName = "Explosion"),
+	EDT_Environment UMETA(DisplayeName = "Environment")
+};
+
+//DamageResponse
+UENUM(BlueprintType)
+enum class EDamageResponse : uint8
+{
+	EDR_None UMETA(DisplayName = "None"),
+	EDR_HitReaction UMETA(DisplayName = "HitReaction"),
+	EDR_Stagger UMETA(DisplayName = "Stagger"),
+	EDR_Stun UMETA(DisplayeName = "Stun"),
+	EDR_KnockBack UMETA(DisplayeName = "KnockBack")
+};

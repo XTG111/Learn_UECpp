@@ -19,7 +19,7 @@ bool UXBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 		{
 			FVector End = Target->GetActorLocation();
 			FHitResult HitRes;
-			ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
+			ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
 			bool bIsHit = UKismetSystemLibrary::LineTraceSingle(
 				GetWorld(),
 				Start,
@@ -27,7 +27,7 @@ bool UXBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 				ETType,
 				false,
 				TArray<AActor*>{ControlledPawn},
-				EDrawDebugTrace::ForDuration,
+				EDrawDebugTrace::None,
 				HitRes,
 				true
 			);

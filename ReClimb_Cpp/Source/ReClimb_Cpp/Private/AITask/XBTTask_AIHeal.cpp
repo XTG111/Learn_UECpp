@@ -11,9 +11,9 @@ EBTNodeResult::Type UXBTTask_AIHeal::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 	if (AICon)
 	{
 		AXAI_Character* ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
-		if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+		if (ControlledPawn && ControlledPawn->Implements<UXDamageInterface>())
 		{
-			IXAIInterface::Execute_Heal(ControlledPawn, 0.8f);
+			IXDamageInterface::Execute_Heal(ControlledPawn, 0.8f);
 			return EBTNodeResult::Succeeded;
 		}
 	}

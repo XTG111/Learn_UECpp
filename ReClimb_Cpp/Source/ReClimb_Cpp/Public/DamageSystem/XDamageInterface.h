@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "D:/UnrealProject/Learn_UECpp/Learn_UECpp/ReClimb_Cpp/Source/ReClimb_Cpp/XHeadFile/XEnumType.h"
-#include "XAIInterface.generated.h"
+#include "Struct/XStructInfo.h"
+#include "XDamageInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UXAIInterface : public UInterface
+class UXDamageInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -17,22 +17,19 @@ class UXAIInterface : public UInterface
 /**
  *
  */
-class RECLIMB_CPP_API IXAIInterface
+class RECLIMB_CPP_API IXDamageInterface
 {
 	GENERATED_BODY()
 
 		// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		class AXLineBase* GetPatrolRoute();
+		float GetCurrentHealth();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		float SetMovementSpeed(EAIMovement SpeedEnum);
+		float GetMaxHealth();
+	//return IsDamaged
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		void GetIdealRange(float& AttackRadius, float& DefendRadius);
+		bool TakeDamage(FDamageInfo DamageInfo);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		void EquipWeapon();
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		void UnEquipWeapon();
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		void Attack();
+		float Heal(float Amount);
 };
