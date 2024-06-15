@@ -13,7 +13,9 @@ EBTNodeResult::Type UXBTTask_AIHeal::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 		AXAI_Character* ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
 		if (ControlledPawn && ControlledPawn->Implements<UXDamageInterface>())
 		{
-			IXDamageInterface::Execute_Heal(ControlledPawn, 0.8f);
+			float MaxHP = IXDamageInterface::Execute_GetMaxHealth(ControlledPawn);
+
+			IXDamageInterface::Execute_Heal(ControlledPawn, 0.8f * MaxHP);
 			return EBTNodeResult::Succeeded;
 		}
 	}

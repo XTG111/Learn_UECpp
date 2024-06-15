@@ -28,6 +28,19 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+public:
+	//血条
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<UUserWidget> HPWidget;
+	UPROPERTY(VisibleAnywhere)
+		class UWidgetComponent* CharacterHPWidget;
+
+	//攻击动画
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* MagicAttackMontage;
+
+
+
 private:
 	UPROPERTY(VisibleAnywhere)
 		class UCameraComponent* TP_Camera;
@@ -42,19 +55,35 @@ private:
 	//玩家状态组件
 	UPROPERTY(VisibleAnywhere)
 		class UXPlayerStatsComponent* PlayerStatesComponent;
+	//战斗组件
+	UPROPERTY(VisibleAnywhere)
+		class UXCombatComponent* CombatComponent;
+
+	//玩家当前的状态
+	EPlayerStance Stance;
+
 
 	// 运动输入
+	bool bCanMove = true;
 	float AxisValue;
 	//是否加速
 	bool bSprinting;
+	//攻击状态
+	bool bInAttack;
 	float SprintSpeed = 900.0f;
-	float WalkSpeed = 225.0f;
+	float WalkSpeed = 250.0f;
 	// 旋转角度基数
 	float BaseTurnRate = 45.0f;
 	//StopMontage的延时TimerHandle;
 	FTimerHandle StopMontageTimerHandle;
 	FTimerDelegate StopMontageTimerDelegate;
 
+	bool bAttacking;
+
+public:
+	inline EPlayerStance GetPlayerStance() { return Stance; }
+	inline void SetPlayerStance(EPlayerStance stance) { Stance = stance; }
+	inline bool GetInAttack() { return bInAttack; }
 	//Interface
 public:
 	float GetCurrentHealth_Implementation();
@@ -64,6 +93,10 @@ public:
 	bool TakeDamage_Implementation(FDamageInfo DamageInfo);
 
 	float Heal_Implementation(float Amount);
+
+	bool IsDead_Implementation();
+
+	bool IsAttacking_Implementation();
 
 public:
 	/*
@@ -83,6 +116,9 @@ public:
 	void Attack();
 	void DoHeal();
 
+	//State
+public:
+
 	//停止蒙太奇动画
 	void StopMontage(class UAnimMontage* Montage, float DelayBeforeStoppingMontage, float MontageBlendOutTime);
 	UFUNCTION()
@@ -95,6 +131,10 @@ public:
 
 	bool bInClimb;
 
+	//切换攻击和默认状态
+	void MagicStance();
+	void DefaultStance();
+
 	//UFUNCTION Bind Delegate
 public:
 	UFUNCTION()
@@ -103,4 +143,10 @@ public:
 		void CallOnBlocked(bool bCanbeParried);
 	UFUNCTION()
 		void CallOnDamageResponse(EDamageResponse DamageResponse);
+
+	//Montage Call
+	UFUNCTION()
+		void OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
+	UFUNCTION()
+		void OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };

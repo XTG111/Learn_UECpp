@@ -58,8 +58,10 @@ public:
 
 	//设置当前AI的状态
 	void SetStateAsPassive();
+	void SetStateAsDead();
 	void SetStateAsInvestigatinig(const FVector& Location);
-	void SetStateAsAttacking(AActor* AttackTarget);
+	void SetStateAsAttacking(AActor* AttackTarget, bool bUseLastTarget);
+	void SetStateAsFrozen();
 
 	//AI Sense
 

@@ -19,7 +19,7 @@ bool UXBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 		{
 			FVector End = Target->GetActorLocation();
 			FHitResult HitRes;
-			ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
+			ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
 			bool bIsHit = UKismetSystemLibrary::LineTraceSingle(
 				GetWorld(),
 				Start,

@@ -14,7 +14,6 @@ class RECLIMB_CPP_API UXBTTask_DefaultAttack : public UBTTask_BlueprintBase
 {
 	GENERATED_BODY()
 public:
-public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	UFUNCTION()
 		void Finish();

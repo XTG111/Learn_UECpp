@@ -77,9 +77,16 @@ void AXAIController::BeginPlay()
 
 void AXAIController::SetStateAsPassive()
 {
-	ClearFocus(EAIFocusPriority::Default);
+	ClearFocus(EAIFocusPriority::LastFocusPriority);
 	AttackTargetActor = nullptr;
 	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Passive));
+}
+
+void AXAIController::SetStateAsDead()
+{
+	ClearFocus(EAIFocusPriority::LastFocusPriority);
+	AttackTargetActor = nullptr;
+	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Dead));
 }
 
 void AXAIController::SetStateAsInvestigatinig(const FVector& Location)
@@ -88,12 +95,21 @@ void AXAIController::SetStateAsInvestigatinig(const FVector& Location)
 	Blackboard->SetValueAsVector(PointOfInterestKeyName, Location);
 }
 
-void AXAIController::SetStateAsAttacking(AActor* AttackTarget)
+void AXAIController::SetStateAsAttacking(AActor* AttackTarget, bool bUseLastTarget)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Attacking"));
-	AttackTargetActor = AttackTarget;
-	Blackboard->SetValueAsObject(AttackTargetKeyName, AttackTarget);
-	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
+	AActor* NewActor = (bUseLastTarget && AttackTargetActor) ? AttackTargetActor : AttackTarget;
+	if (NewActor)
+	{
+		Blackboard->SetValueAsObject(AttackTargetKeyName, NewActor);
+		Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
+		AttackTargetActor = NewActor;
+	}
+}
+
+void AXAIController::SetStateAsFrozen()
+{
+	Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Frozen));
 }
 
 void AXAIController::OnPossess(APawn* InPawn)
@@ -192,7 +208,7 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 	case EAIState::EASt_Passive:
 		if (check)
 		{
-			SetStateAsAttacking(Actor);
+			SetStateAsAttacking(Actor, false);
 		}
 		break;
 	case EAIState::EASt_Attacking:
@@ -202,7 +218,7 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 	case EAIState::EASt_Investingating:
 		if (check)
 		{
-			SetStateAsAttacking(Actor);
+			SetStateAsAttacking(Actor, false);
 		}
 		break;
 	case EAIState::EASt_Dead:
@@ -219,14 +235,14 @@ void AXAIController::HandleSenseDamage(AActor* Actor)
 	switch (curState)
 	{
 	case EAIState::EASt_Passive:
-		SetStateAsAttacking(Actor);
+		SetStateAsAttacking(Actor, false);
 		break;
 	case EAIState::EASt_Attacking:
 		break;
 	case EAIState::EASt_Frozen:
 		break;
 	case EAIState::EASt_Investingating:
-		SetStateAsAttacking(Actor);
+		SetStateAsAttacking(Actor, false);
 		break;
 	case EAIState::EASt_Dead:
 		break;

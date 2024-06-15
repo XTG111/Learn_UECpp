@@ -3,9 +3,6 @@
 
 #include "Component/XPlayerStatsComponent.h"
 #include "AI/XAI_Character.h"
-#include "Components/WidgetComponent.h"
-#include "Widget/XWidget_EnemyHeadHP.h"
-#include "Components/ProgressBar.h"
 #include "Struct/XStructInfo.h"
 
 // Sets default values for this component's properties
@@ -23,7 +20,6 @@ UXPlayerStatsComponent::UXPlayerStatsComponent()
 void UXPlayerStatsComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	AICharacter = Cast<AXAI_Character>(GetOwner());
 	// ...
 
 }
@@ -39,16 +35,7 @@ void UXPlayerStatsComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UXPlayerStatsComponent::SetCurHealth(float value)
 {
-	if (!AICharacter) return;
 	CurHealth = value;
-	if (AICharacter->EnemyHPWidget && AICharacter->EnemyHPWidget->GetWidget())
-	{
-		UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(AICharacter->EnemyHPWidget->GetWidget());
-		if (Widget)
-		{
-			Widget->HealthBar->SetPercent(value / MaxHealth);
-		}
-	}
 }
 
 float UXPlayerStatsComponent::Heal(float Amount)
@@ -63,7 +50,6 @@ bool UXPlayerStatsComponent::TakeDamage(FDamageInfo DamageInfo)
 	int check = CanBeDamaged(DamageInfo.bShouldDamageInvincible, DamageInfo.bCanBeBlocked);
 	if (check == 0)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("BLOCKED"));
 		OnBlocked.Broadcast(DamageInfo.bCanBeParried);
 		return false;
 	}

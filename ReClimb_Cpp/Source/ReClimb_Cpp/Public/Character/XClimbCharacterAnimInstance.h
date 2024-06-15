@@ -31,6 +31,9 @@ private:
 	//1D Blend Space
 	UPROPERTY(BlueprintReadOnly, Category = MoveControl, meta = (AllowPrivateAccess = "true"))
 		float speed;
+
+	UPROPERTY(BlueprintReadOnly, Category = Attack, meta = (AllowPrivateAccess = "true"))
+		bool bInAttack;
 	//Direction
 	UPROPERTY(BlueprintReadOnly, Category = MoveControl, meta = (AllowPrivateAccess = "true"))
 		float Direction;

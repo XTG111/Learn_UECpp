@@ -1,5 +1,14 @@
 #pragma once
 
+//角色当前状态的枚举
+UENUM(BlueprintType)
+enum class EPlayerStance : uint8
+{
+	EPS_None UMETA(DisplayName = "None"),
+	EPS_Default UMETA(DisplayName = "Defual"),
+	EPS_Magic UMETA(DisplayeName = "Magic"),
+};
+
 //攀爬类型的枚举
 UENUM(BlueprintType)
 enum class EClimbingTypes : uint8
@@ -74,4 +83,13 @@ enum class EDamageResponse : uint8
 	EDR_Stagger UMETA(DisplayName = "Stagger"),
 	EDR_Stun UMETA(DisplayeName = "Stun"),
 	EDR_KnockBack UMETA(DisplayeName = "KnockBack")
+};
+
+//BlockingStace
+UENUM(BlueprintType)
+enum class EBlockingStace : uint8
+{
+	EBS_None UMETA(DisplayName = "None"),
+	EBS_Blocking UMETA(DisplayName = "Blocking"),
+	EBS_BlockSuccess UMETA(DisplayName = "BlockSuccess")
 };

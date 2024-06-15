@@ -8,6 +8,7 @@
 #include "Animation/AnimMontage.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "AI/XAIController.h"
+#include "Component/XCombatComponent.h"
 
 void AXAI_GunCharacter::BeginPlay()
 {
@@ -80,8 +81,8 @@ float AXAI_GunCharacter::SetMovementSpeed_Implementation(EAIMovement SpeedEnum)
 
 void AXAI_GunCharacter::GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius)
 {
-	AttackRadius = 1000.0f;
-	DefendRadius = 1000.0f;
+	AttackRadius = 600.0f;
+	DefendRadius = 600.0f;
 }
 
 void AXAI_GunCharacter::Attack_Implementation()
@@ -100,28 +101,21 @@ void AXAI_GunCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointN
 		FVector Start = Weapon->GetActorLocation();
 
 		AXAIController* AIC = Cast<AXAIController>(GetController());
+
+		FDamageInfo DamageInfo;
+		DamageInfo.Amount = 10.0f;
+		DamageInfo.DamageType = EDamageType::EDT_Projectile;
+		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+		DamageInfo.bCanBeBlocked = true;
+
 		if (AIC)
 		{
-			AActor* TargetActor = AIC->GetAttackTargetActor();
-			if (TargetActor)
 			{
-				FVector End = TargetActor->GetActorLocation();
-				ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
-				FHitResult HitRes;
-				bool bIsHit = UKismetSystemLibrary::LineTraceSingle(
-					GetWorld(),
-					Start,
-					End,
-					ETType,
-					false,
-					TArray<AActor*>(),
-					EDrawDebugTrace::None,
-					HitRes,
-					true
-				);
-				if (bIsHit)
+				AActor* TargetActor = AIC->GetAttackTargetActor();
+				if (TargetActor)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("HitActor"));
+					FVector End = TargetActor->GetActorLocation();
+					CombatComponent->FireBullet(Start, End, DamageInfo, this);
 				}
 			}
 		}

@@ -17,11 +17,10 @@ void UXClimbCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	if (!IsValid(XClimbCharacter)) return;
 	bIsInAir = XClimbCharacter->GetCharacterMovement()->IsFalling();
+	bInAttack = XClimbCharacter->GetInAttack();
 	speed = XClimbCharacter->GetVelocity().Size();
 	Direction = CalculateDirection(XClimbCharacter->GetVelocity(), XClimbCharacter->GetActorRotation());
 	FootIK();
-
-
 }
 
 void UXClimbCharacterAnimInstance::FootIK()

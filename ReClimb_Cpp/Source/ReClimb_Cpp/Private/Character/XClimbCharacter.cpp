@@ -15,7 +15,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "AI/XAI_GunCharacter.h"
 #include "DamageSystem/XDamageComponent.h"
-
+#include "Components/WidgetComponent.h"
+#include "Widget/XWidget_EnemyHeadHP.h"
+#include "Components/ProgressBar.h"
+#include "Component/XCombatComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 
 // Sets default values
 AXClimbCharacter::AXClimbCharacter()
@@ -25,7 +30,7 @@ AXClimbCharacter::AXClimbCharacter()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->MaxWalkSpeed = 225.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 
 	TP_CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("TP_CameraSpringArm"));
 	TP_CameraSpringArm->SetupAttachment(GetCapsuleComponent());
@@ -44,12 +49,19 @@ AXClimbCharacter::AXClimbCharacter()
 
 	ClimbComponent = CreateDefaultSubobject<UXClimbComponent>(TEXT("ClimbComponent"));
 	PlayerStatesComponent = CreateDefaultSubobject<UXPlayerStatsComponent>(TEXT("PlayerStatesComponent"));
+	CombatComponent = CreateDefaultSubobject<UXCombatComponent>(TEXT("CombatComponent"));
 
 	//TraceChannel AITarget
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-	//GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+
+
+	CharacterHPWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPWidget"));
+	CharacterHPWidget->SetupAttachment(GetMesh());
+	CharacterHPWidget->SetDrawSize(FVector2D(200, 20)); // Example size
+	CharacterHPWidget->SetWidgetSpace(EWidgetSpace::Screen);
 
 }
 
@@ -68,13 +80,16 @@ void AXClimbCharacter::BeginPlay()
 		PlayerStatesComponent->OnBlocked.AddDynamic(this, &AXClimbCharacter::CallOnBlocked);
 		PlayerStatesComponent->OnDamageResponse.AddDynamic(this, &AXClimbCharacter::CallOnDamageResponse);
 	}
+	if (HPWidget)
+	{
+		CharacterHPWidget->SetWidget(CreateWidget<UUserWidget>(GetWorld(), HPWidget));
+	}
 }
 
 // Called every frame
 void AXClimbCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -93,9 +108,12 @@ void AXClimbCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Shift", IE_Released, this, &AXClimbCharacter::SlowSpeed);
 
 	PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &AXClimbCharacter::Climb);
-	PlayerInputComponent->BindAction("Climb", IE_Released, this, &AXClimbCharacter::Climb);
+	//PlayerInputComponent->BindAction("Climb", IE_Released, this, &AXClimbCharacter::Climb);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AXClimbCharacter::Attack);
 	PlayerInputComponent->BindAction("Heal", IE_Pressed, this, &AXClimbCharacter::DoHeal);
+
+	PlayerInputComponent->BindAction("ChangeStance", IE_Pressed, this, &AXClimbCharacter::MagicStance);
+	PlayerInputComponent->BindAction("ChangeStance", IE_Released, this, &AXClimbCharacter::DefaultStance);
 
 }
 
@@ -116,11 +134,29 @@ bool AXClimbCharacter::TakeDamage_Implementation(FDamageInfo DamageInfo)
 
 float AXClimbCharacter::Heal_Implementation(float Amount)
 {
-	return PlayerStatesComponent->Heal(Amount);
+	float value = PlayerStatesComponent->Heal(Amount);
+	float MaxHealth = PlayerStatesComponent->GetMaxHealth();
+	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(CharacterHPWidget->GetWidget());
+	if (Widget)
+	{
+		Widget->HealthBar->SetPercent(value / MaxHealth);
+	}
+	return value;
+}
+
+bool AXClimbCharacter::IsDead_Implementation()
+{
+	return PlayerStatesComponent->GetIsDeath();
+}
+
+bool AXClimbCharacter::IsAttacking_Implementation()
+{
+	return bAttacking;
 }
 
 void AXClimbCharacter::MoveForWard(float value)
 {
+	if (!bCanMove) return;
 	AxisValue = value;
 	FRotator Rotation = GetControlRotation();
 	Rotation.Roll = 0.0f;
@@ -131,6 +167,7 @@ void AXClimbCharacter::MoveForWard(float value)
 
 void AXClimbCharacter::MoveRight(float value)
 {
+	if (!bCanMove) return;
 	AxisValue = value;
 	FRotator Rotation = GetControlRotation();
 	Rotation.Roll = 0.0f;
@@ -191,41 +228,62 @@ void AXClimbCharacter::ReClimb()
 }
 
 void AXClimbCharacter::Attack()
-{
-	//AXAI_GunCharacter* TargetActor = Cast<AXAI_GunCharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), AXAI_GunCharacter::StaticClass()));
-	//UGameplayStatics::ApplyDamage(TargetActor, 5.0f, nullptr, this, nullptr);
-
-	FDamageInfo DamageInfo;
-	DamageInfo.Amount = 10.0f;
-	DamageInfo.DamageType = EDamageType::EDT_Melee;
-	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
-
-	FVector Start = GetActorLocation();
-	FVector End = Start + GetActorForwardVector() * 1000.0f;
-	ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel2);
-	FHitResult HitRes;
-	bool bIsHit = UKismetSystemLibrary::SphereTraceSingle(
-		GetWorld(),
-		Start,
-		End,
-		20.0f,
-		ETType,
-		false,
-		TArray<AActor*>{this},
-		EDrawDebugTrace::ForDuration,
-		HitRes,
-		true
-	);
-	if (bIsHit)
-	{
-		AXAI_Character* AICha = Cast<AXAI_Character>(HitRes.Actor);
-		if (AICha && AICha->Implements<UXDamageInterface>())
+{	/* {
+		FVector Start = GetActorLocation();
+		FVector End = Start + GetActorForwardVector() * 1000.0f;
+		ETraceTypeQuery ETType1st = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
+		ETraceTypeQuery ETType2nd = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel2);
+		FHitResult HitRes1st;
+		bool bIsHit = UKismetSystemLibrary::SphereTraceSingle(
+			GetWorld(),
+			Start,
+			End,
+			20.0f,
+			ETType1st,
+			false,
+			TArray<AActor*>{this},
+			EDrawDebugTrace::ForDuration,
+			HitRes1st,
+			true
+		);
+		if (bIsHit)
 		{
-			IXDamageInterface::Execute_TakeDamage(AICha, DamageInfo);
-			UGameplayStatics::ApplyDamage(AICha, 5.0f, nullptr, this, nullptr);
+			return;
 		}
-	}
-
+		else
+		{
+			FHitResult HitRes2nd;
+			bIsHit = UKismetSystemLibrary::SphereTraceSingle(
+				GetWorld(),
+				Start,
+				End,
+				20.0f,
+				ETType2nd,
+				false,
+				TArray<AActor*>{this},
+				EDrawDebugTrace::ForDuration,
+				HitRes2nd,
+				true
+			);
+			if (bIsHit)
+			{
+				AXAI_Character* AICha = Cast<AXAI_Character>(HitRes2nd.Actor);
+				if (AICha && AICha->Implements<UXDamageInterface>())
+				{
+					IXDamageInterface::Execute_TakeDamage(AICha, DamageInfo);
+					UGameplayStatics::ApplyDamage(AICha, 5.0f, nullptr, this, nullptr);
+				}
+			}
+		}
+	}*/
+	if (Stance != EPlayerStance::EPS_Magic) return;
+	bAttacking = true;
+	bCanMove = false;
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+	PlayAnimMontage(MagicAttackMontage);
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXClimbCharacter::OnNotifyMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXClimbCharacter::OnAttackMontageEnd);
 }
 
 void AXClimbCharacter::DoHeal()
@@ -321,11 +379,38 @@ void AXClimbCharacter::OnLanded(const FHitResult& Hit)
 	}
 }
 
+void AXClimbCharacter::MagicStance()
+{
+	//Show CrossHair CrossHairWID
+
+	Stance = EPlayerStance::EPS_Magic;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+	bInAttack = true;
+}
+
+void AXClimbCharacter::DefaultStance()
+{
+	Stance = EPlayerStance::EPS_Default;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+	bInAttack = false;
+}
+
 void AXClimbCharacter::CallOnDeath()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Character On Death"));
+	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(CharacterHPWidget->GetWidget());
+	if (Widget)
+	{
+		Widget->HealthBar->SetPercent(0);
+	}
+	PlayerStatesComponent->SetIsDeath(true);
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	DisableInput(GetWorld()->GetFirstPlayerController());
 }
 
 void AXClimbCharacter::CallOnBlocked(bool bCanbeParried)
@@ -335,7 +420,42 @@ void AXClimbCharacter::CallOnBlocked(bool bCanbeParried)
 
 void AXClimbCharacter::CallOnDamageResponse(EDamageResponse DamageResponse)
 {
+	float value = PlayerStatesComponent->GetCurHealth();
+	float MaxHealth = PlayerStatesComponent->GetMaxHealth();
+	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(CharacterHPWidget->GetWidget());
+	if (Widget)
+	{
+		Widget->HealthBar->SetPercent(value / MaxHealth);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("Character On DamageResponse"));
+}
+
+void AXClimbCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == FName(TEXT("Fire")))
+	{
+		FDamageInfo DamageInfo;
+		DamageInfo.Amount = 10.0f;
+		DamageInfo.DamageType = EDamageType::EDT_Projectile;
+		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+		DamageInfo.bCanBeBlocked = true;
+
+		FTransform trans;
+		trans.SetLocation(GetMesh()->GetSocketLocation(TEXT("hand_rSocket")));
+		FRotator Rot = UKismetMathLibrary::FindLookAtRotation(
+			GetMesh()->GetSocketLocation(TEXT("hand_rSocket")),
+			TP_Camera->GetComponentLocation() + TP_Camera->GetForwardVector() * 1000.0f
+		);
+		trans.SetRotation(Rot.Quaternion());
+
+		CombatComponent->MagicSpell(trans, nullptr, DamageInfo);
+	}
+}
+
+void AXClimbCharacter::OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	bAttacking = false;
+	bCanMove = true;
 }
 
 

@@ -3,10 +3,24 @@
 
 #include "AI/XAI_SwordCharacter.h"
 #include "Weapon/XSwordBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "AI/XAIController.h"
+#include "Component/XCombatComponent.h"
+#include "Component/XPlayerStatsComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Widget/XWidget_EnemyHeadHP.h"
+#include "Components/ProgressBar.h"
 
 void AXAI_SwordCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	AIStatesComponent->OnBlocked.Clear();
+	AIStatesComponent->OnDamageResponse.Clear();
+	AIStatesComponent->OnBlocked.AddDynamic(this, &AXAI_SwordCharacter::CallOnBlocked);
+	AIStatesComponent->OnDamageResponse.AddDynamic(this, &AXAI_SwordCharacter::CallOnDamageResponse);
 }
 
 void AXAI_SwordCharacter::EquipWeapon_Implementation()
@@ -21,14 +35,86 @@ void AXAI_SwordCharacter::UnEquipWeapon_Implementation()
 
 void AXAI_SwordCharacter::Attack_Implementation()
 {
+	bAttacking = true;
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
 	PlayAnimMontage(AttackMontage);
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_SwordCharacter::OnNotifyMontage);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndAttackMontage);
+}
+
+void AXAI_SwordCharacter::GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius)
+{
+	AttackRadius = 300.0f;
+	DefendRadius = 300.0f;
+}
+
+void AXAI_SwordCharacter::StartBlock()
+{
+	AIStatesComponent->SetIsBlocking(true);
+	BlockStace = EBlockingStace::EBS_Blocking;
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	PlayAnimMontage(Block1Montage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndBlockMontage);
+}
+
+void AXAI_SwordCharacter::EndBlockMontage(UAnimMontage* Montage, bool bInterrupted)
+{
+	BlockStace = EBlockingStace::EBS_None;
+	AIStatesComponent->SetIsBlocking(false);
+	//if interuppted Attack
+	CallOnAttackEndCall.Broadcast();
+	OnBlockEnded.Broadcast();
+}
+
+void AXAI_SwordCharacter::CallOnBlocked_Implementation(bool bCanbeParried)
+{
+	//Super::CallOnBlocked(bCanbeParried);
+	BlockStace = EBlockingStace::EBS_BlockSuccess;
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	PlayAnimMontage(Block2Montage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndBlockMontage);
+}
+
+void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse)
+{
+	if (bCanBlock)
+	{
+		StartBlock();
+		bCanBlock = false;
+		GetWorldTimerManager().SetTimer(CoolDownBlock, this, &AXAI_SwordCharacter::SetbCanBlock, 10.0f, false);
+	}
+	else
+	{
+		Super::CallOnDamageResponse_Implementation(DamageResponse);
+	}
 }
 
 void AXAI_SwordCharacter::EndAttackMontage(UAnimMontage* Montage, bool bInterrupted)
 {
+	bAttacking = false;
 	CallOnAttackEndCall.Broadcast();
+}
+
+void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == FName(TEXT("Fire")))
+	{
+		FVector Start = GetActorLocation();
+
+		AXAIController* AIC = Cast<AXAIController>(GetController());
+
+		FDamageInfo DamageInfo;
+		DamageInfo.Amount = 25.0f;
+		DamageInfo.DamageType = EDamageType::EDT_Projectile;
+		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+
+		if (AIC)
+		{
+			FVector End = Start + GetActorForwardVector() * 300.0f;
+			CombatComponent->SwordAttack(Start, End, DamageInfo, this);
+		}
+	}
 }
 
 void AXAI_SwordCharacter::WieldSword()
@@ -78,4 +164,10 @@ void AXAI_SwordCharacter::EndSheathMontage(UAnimMontage* Montage, bool bInterrup
 {
 	if (Weapon)	Weapon->Destroy();
 	CallOnUnEquipWeapon.Broadcast();
+}
+
+void AXAI_SwordCharacter::SetbCanBlock()
+{
+	bCanBlock = true;
+	//GetWorldTimerManager().ClearTimer(CoolDownBlock);
 }

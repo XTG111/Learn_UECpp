@@ -32,4 +32,8 @@ public:
 		bool TakeDamage(FDamageInfo DamageInfo);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		float Heal(float Amount);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		bool IsDead();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		bool IsAttacking();
 };

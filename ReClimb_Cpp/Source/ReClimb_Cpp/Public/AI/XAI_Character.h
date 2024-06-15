@@ -32,9 +32,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION()
-		void ReceivedDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
-
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* SwordBegin;
@@ -42,8 +39,13 @@ public:
 		UAnimMontage* SwordEnd;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* AttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* HitMontage;
 	UPROPERTY(VisibleAnywhere)
 		class AXLineBase* Patrol;
+
+	UPROPERTY(VisibleAnywhere, Category = "AI")
+		class AXAIController* AIController;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 		class UBehaviorTree* BehaviorTree;
@@ -74,11 +76,14 @@ public:
 	void UnEquipWeapon_Implementation() override;
 	void Attack_Implementation() override;
 
+
 	//DamageInterface
 	float GetCurrentHealth_Implementation();
 	float GetMaxHealth_Implementation();
 	bool TakeDamage_Implementation(FDamageInfo DamageInfo);
 	float Heal_Implementation(float Amount);
+	bool IsDead_Implementation();
+	bool IsAttacking_Implementation();
 
 public:
 
@@ -88,15 +93,24 @@ public:
 
 	//UFUNCTION Bind Delegate
 public:
-	UFUNCTION()
+	UFUNCTION(BlueprintNativeEvent)
 		void CallOnDeath();
-	UFUNCTION()
+	virtual void CallOnDeath_Implementation();
+	UFUNCTION(BlueprintNativeEvent)
 		void CallOnBlocked(bool bCanbeParried);
-	UFUNCTION()
+	virtual void CallOnBlocked_Implementation(bool bCanbeParried);
+	UFUNCTION(BlueprintNativeEvent)
 		void CallOnDamageResponse(EDamageResponse DamageResponse);
+	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse);
+	UFUNCTION()
+		void OnHitMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
-private:
+public:
 	UPROPERTY(VisibleAnywhere)
 		class UXPlayerStatsComponent* AIStatesComponent;
+	UPROPERTY(VisibleAnywhere)
+		class UXCombatComponent* CombatComponent;
+
+	bool bAttacking;
 
 };

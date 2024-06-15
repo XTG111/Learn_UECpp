@@ -13,6 +13,10 @@
 #include "Widget/XWidget_EnemyHeadHP.h"
 #include "DamageSystem/XDamageComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Struct/XStructInfo.h"
+#include "Components/ProgressBar.h"
+#include "AI/XAIController.h"
+#include "Component/XCombatComponent.h"
 
 
 // Sets default values
@@ -22,6 +26,7 @@ AXAI_Character::AXAI_Character()
 	PrimaryActorTick.bCanEverTick = true;
 
 	AIStatesComponent = CreateDefaultSubobject<UXPlayerStatsComponent>(TEXT("AIStatesComponent"));
+	CombatComponent = CreateDefaultSubobject<UXCombatComponent>(TEXT("CombatComponent"));
 
 	EnemyHPWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPWidget"));
 	EnemyHPWidget->SetupAttachment(GetMesh());
@@ -30,15 +35,16 @@ AXAI_Character::AXAI_Character()
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
-	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-	//GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 }
 
 // Called when the game starts or when spawned
 void AXAI_Character::BeginPlay()
 {
 	Super::BeginPlay();
-	OnTakeAnyDamage.AddDynamic(this, &AXAI_Character::ReceivedDamage);
 	//Patrol = Cast<AXLineBase>(UGameplayStatics::GetActorOfClass(GetWorld(), AXLineBase::StaticClass()));
 	if (HPWidget)
 	{
@@ -50,30 +56,13 @@ void AXAI_Character::BeginPlay()
 		AIStatesComponent->OnBlocked.AddDynamic(this, &AXAI_Character::CallOnBlocked);
 		AIStatesComponent->OnDamageResponse.AddDynamic(this, &AXAI_Character::CallOnDamageResponse);
 	}
+	AIController = Cast<AXAIController>(GetController());
 }
 
 // Called every frame
 void AXAI_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void AXAI_Character::ReceivedDamage(AActor* DamageActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
-{
-	if (AIStatesComponent)
-	{
-		float curhealth = FMath::Clamp(AIStatesComponent->GetCurHealth() - Damage, -10.0f, AIStatesComponent->GetMaxHealth());
-		if (curhealth <= 0.0f)
-		{
-			AIStatesComponent->SetCurHealth(0.0f);
-			AIStatesComponent->SetIsDeath(true);
-		}
-		else
-		{
-			AIStatesComponent->SetCurHealth(curhealth);
-			UE_LOG(LogTemp, Warning, TEXT("CurHealth:%f"), AIStatesComponent->GetCurHealth());
-		}
-	}
 }
 
 AXLineBase* AXAI_Character::GetPatrolRoute_Implementation()
@@ -145,24 +134,70 @@ bool AXAI_Character::TakeDamage_Implementation(FDamageInfo DamageInfo)
 
 float AXAI_Character::Heal_Implementation(float Amount)
 {
-	return AIStatesComponent->Heal(Amount);
+	float value = AIStatesComponent->Heal(Amount);
+	float MaxHealth = AIStatesComponent->GetMaxHealth();
+	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
+	if (Widget)
+	{
+		Widget->HealthBar->SetPercent(value / MaxHealth);
+	}
+	return value;
 }
 
-void AXAI_Character::CallOnDeath()
+bool AXAI_Character::IsDead_Implementation()
+{
+	return AIStatesComponent->GetIsDeath();
+}
+
+bool AXAI_Character::IsAttacking_Implementation()
+{
+	return bAttacking;
+}
+
+void AXAI_Character::CallOnDeath_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AI On Death"));
+	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
+	if (Widget)
+	{
+		Widget->HealthBar->SetPercent(0);
+	}
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	AIStatesComponent->SetIsDeath(true);
+	FString Reason = TEXT("Dead");
+	AIController->GetBrainComponent()->StopLogic(Reason);
+	AIController->SetStateAsDead();
 }
 
-void AXAI_Character::CallOnBlocked(bool bCanbeParried)
+
+void AXAI_Character::CallOnBlocked_Implementation(bool bCanbeParried)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AI On Blocked"));
 }
 
-void AXAI_Character::CallOnDamageResponse(EDamageResponse DamageResponse)
+void AXAI_Character::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse)
 {
+	float value = AIStatesComponent->GetCurHealth();
+	float MaxHealth = AIStatesComponent->GetMaxHealth();
+	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
+	if (Widget)
+	{
+		Widget->HealthBar->SetPercent(value / MaxHealth);
+	}
+
+	GetCharacterMovement()->StopMovementImmediately();
+	AIController->SetStateAsFrozen();
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	PlayAnimMontage(HitMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_Character::OnHitMontageEnd);
+
 	UE_LOG(LogTemp, Warning, TEXT("AI On DamageResponse"));
+}
+
+void AXAI_Character::OnHitMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	AIController->SetStateAsAttacking(AIController->GetAttackTargetActor(), false);
 }
 
 void AXAI_Character::SetIsWiledWeapon(bool bSet)

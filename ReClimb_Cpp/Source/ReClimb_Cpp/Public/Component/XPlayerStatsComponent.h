@@ -29,9 +29,6 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-	UPROPERTY(VisibleAnywhere)
-		class AXAI_Character* AICharacter;
-
 	float MaxHealth = 100.0f;
 	float MaxStamina = 100.0f;
 
@@ -54,8 +51,11 @@ public:
 	void SetCurHealth(float value);
 	inline void SetCurStamina(float value) { CurStamina = value; }
 
-	inline float GetIsDeath() { return bIsDeath; }
+	inline bool GetIsDeath() { return bIsDeath; }
 	inline void SetIsDeath(bool bdeath) { bIsDeath = bdeath; }
+
+	inline bool GetIsBlocking() { return bIsBlocking; }
+	inline void SetIsBlocking(bool bblockiing) { bIsBlocking = bblockiing; }
 
 public:
 	float Heal(float Amount);
