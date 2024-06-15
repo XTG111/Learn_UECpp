@@ -19,6 +19,7 @@ AXProjectilesBase::AXProjectilesBase()
 	SphereCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	SphereCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	SphereCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	Mesh->SetupAttachment(SphereCollision);

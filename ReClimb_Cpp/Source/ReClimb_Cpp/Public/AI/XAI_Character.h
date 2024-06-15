@@ -62,6 +62,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 		class UWidgetComponent* EnemyHPWidget;
 
+	UPROPERTY()
+		AActor* MakeDamageActor;
+
 	inline bool GetIsWiledWeapon() { return bIsWiledWeapon; }
 
 	UFUNCTION(BlueprintCallable)
@@ -80,7 +83,7 @@ public:
 	//DamageInterface
 	float GetCurrentHealth_Implementation();
 	float GetMaxHealth_Implementation();
-	bool TakeDamage_Implementation(FDamageInfo DamageInfo);
+	bool TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor);
 	float Heal_Implementation(float Amount);
 	bool IsDead_Implementation();
 	bool IsAttacking_Implementation();
@@ -100,8 +103,8 @@ public:
 		void CallOnBlocked(bool bCanbeParried);
 	virtual void CallOnBlocked_Implementation(bool bCanbeParried);
 	UFUNCTION(BlueprintNativeEvent)
-		void CallOnDamageResponse(EDamageResponse DamageResponse);
-	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse);
+		void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);
+	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor);
 	UFUNCTION()
 		void OnHitMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 

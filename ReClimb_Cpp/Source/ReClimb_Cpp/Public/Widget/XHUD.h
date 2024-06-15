@@ -36,6 +36,12 @@ class RECLIMB_CPP_API AXHUD : public AHUD
 protected:
 	virtual void BeginPlay() override;
 public:
+	//»ÀŒÔ Ù–‘
+	UPROPERTY(EditAnywhere, Category = "Player State")
+		TSubclassOf<class UUserWidget> CharacterShowWdgClass;
+	UPROPERTY()
+		class UXWidget_CharacterOverShow* CharacterShowWdg;
+public:
 	FHUDPackage HUDPackage;
 
 	virtual void DrawHUD() override;
@@ -48,4 +54,5 @@ public:
 
 public:
 	void SetHUDPackage(const FHUDPackage& Package);
+	void AddCharacterShow();
 };

@@ -53,6 +53,8 @@ void AXAI_SwordCharacter::StartBlock()
 {
 	AIStatesComponent->SetIsBlocking(true);
 	BlockStace = EBlockingStace::EBS_Blocking;
+	//当阻挡是立即停止移动
+	GetCharacterMovement()->StopMovementImmediately();
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
 	PlayAnimMontage(Block1Montage);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndBlockMontage);
@@ -76,7 +78,7 @@ void AXAI_SwordCharacter::CallOnBlocked_Implementation(bool bCanbeParried)
 	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndBlockMontage);
 }
 
-void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse)
+void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor)
 {
 	if (bCanBlock)
 	{
@@ -86,7 +88,7 @@ void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse Da
 	}
 	else
 	{
-		Super::CallOnDamageResponse_Implementation(DamageResponse);
+		Super::CallOnDamageResponse_Implementation(DamageResponse, DamageCausor);
 	}
 }
 
@@ -106,13 +108,22 @@ void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPoin
 
 		FDamageInfo DamageInfo;
 		DamageInfo.Amount = 25.0f;
-		DamageInfo.DamageType = EDamageType::EDT_Projectile;
+		DamageInfo.DamageType = EDamageType::EDT_Melee;
 		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
 
 		if (AIC)
 		{
-			FVector End = Start + GetActorForwardVector() * 300.0f;
-			CombatComponent->SwordAttack(Start, End, DamageInfo, this);
+			AActor* TargetActor = AIC->GetAttackTargetActor();
+			if (TargetActor && TargetActor->Implements<UXDamageInterface>())
+			{
+				if (!IXDamageInterface::Execute_IsDead(TargetActor))
+				{
+					FVector End = Start + GetActorForwardVector() * 300.0f;
+					CombatComponent->SwordAttack(Start, End, DamageInfo, this);
+				}
+				else AIC->SetStateAsPassive();
+			}
+
 		}
 	}
 }
@@ -169,5 +180,5 @@ void AXAI_SwordCharacter::EndSheathMontage(UAnimMontage* Montage, bool bInterrup
 void AXAI_SwordCharacter::SetbCanBlock()
 {
 	bCanBlock = true;
-	//GetWorldTimerManager().ClearTimer(CoolDownBlock);
+	GetWorldTimerManager().ClearTimer(CoolDownBlock);
 }

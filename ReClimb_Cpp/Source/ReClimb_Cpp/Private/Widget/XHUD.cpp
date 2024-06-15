@@ -6,6 +6,7 @@
 #include "Components/HorizontalBox.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Widget/XWidget_CharacterOverShow.h"
 
 void AXHUD::BeginPlay()
 {
@@ -46,4 +47,14 @@ void AXHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector
 void AXHUD::SetHUDPackage(const FHUDPackage& Package)
 {
 	HUDPackage = Package;
+}
+
+void AXHUD::AddCharacterShow()
+{
+	PlayerController = PlayerController == nullptr ? GetOwningPlayerController() : PlayerController;
+	if (PlayerController && CharacterShowWdgClass)
+	{
+		CharacterShowWdg = CreateWidget<UXWidget_CharacterOverShow>(PlayerController, CharacterShowWdgClass);
+		CharacterShowWdg->AddToViewport();
+	}
 }

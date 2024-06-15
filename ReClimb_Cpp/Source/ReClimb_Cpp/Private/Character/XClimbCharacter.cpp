@@ -14,13 +14,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "AI/XAI_GunCharacter.h"
-#include "DamageSystem/XDamageComponent.h"
-#include "Components/WidgetComponent.h"
-#include "Widget/XWidget_EnemyHeadHP.h"
-#include "Components/ProgressBar.h"
 #include "Component/XCombatComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "Widget/XHUD.h"
+#include "Widget/XWidget_CharacterOverShow.h"
+#include "Components/WidgetComponent.h"
+#include "Components/ProgressBar.h"
 
 // Sets default values
 AXClimbCharacter::AXClimbCharacter()
@@ -57,12 +57,6 @@ AXClimbCharacter::AXClimbCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 
-
-	CharacterHPWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPWidget"));
-	CharacterHPWidget->SetupAttachment(GetMesh());
-	CharacterHPWidget->SetDrawSize(FVector2D(200, 20)); // Example size
-	CharacterHPWidget->SetWidgetSpace(EWidgetSpace::Screen);
-
 }
 
 // Called when the game starts or when spawned
@@ -80,9 +74,16 @@ void AXClimbCharacter::BeginPlay()
 		PlayerStatesComponent->OnBlocked.AddDynamic(this, &AXClimbCharacter::CallOnBlocked);
 		PlayerStatesComponent->OnDamageResponse.AddDynamic(this, &AXClimbCharacter::CallOnDamageResponse);
 	}
-	if (HPWidget)
+	PIC = PIC == nullptr ? Cast<APlayerController>(this->Controller) : PIC;
+	if (PIC)
 	{
-		CharacterHPWidget->SetWidget(CreateWidget<UUserWidget>(GetWorld(), HPWidget));
+		XCharacterHUD = XCharacterHUD == nullptr ? Cast<AXHUD>(PIC->GetHUD()) : XCharacterHUD;
+		XCharacterHUD->AddCharacterShow();
+		UXWidget_CharacterOverShow* Widget = XCharacterHUD->CharacterShowWdg;
+		if (Widget)
+		{
+			Widget->HealthBar->SetPercent(1);
+		}
 	}
 }
 
@@ -127,16 +128,16 @@ float AXClimbCharacter::GetMaxHealth_Implementation()
 	return PlayerStatesComponent->GetMaxHealth();
 }
 
-bool AXClimbCharacter::TakeDamage_Implementation(FDamageInfo DamageInfo)
+bool AXClimbCharacter::TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor)
 {
-	return PlayerStatesComponent->TakeDamage(DamageInfo);
+	return PlayerStatesComponent->TakeDamage(DamageInfo, DamageCausor);
 }
 
 float AXClimbCharacter::Heal_Implementation(float Amount)
 {
 	float value = PlayerStatesComponent->Heal(Amount);
 	float MaxHealth = PlayerStatesComponent->GetMaxHealth();
-	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(CharacterHPWidget->GetWidget());
+	UXWidget_CharacterOverShow* Widget = XCharacterHUD->CharacterShowWdg;
 	if (Widget)
 	{
 		Widget->HealthBar->SetPercent(value / MaxHealth);
@@ -228,55 +229,9 @@ void AXClimbCharacter::ReClimb()
 }
 
 void AXClimbCharacter::Attack()
-{	/* {
-		FVector Start = GetActorLocation();
-		FVector End = Start + GetActorForwardVector() * 1000.0f;
-		ETraceTypeQuery ETType1st = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
-		ETraceTypeQuery ETType2nd = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel2);
-		FHitResult HitRes1st;
-		bool bIsHit = UKismetSystemLibrary::SphereTraceSingle(
-			GetWorld(),
-			Start,
-			End,
-			20.0f,
-			ETType1st,
-			false,
-			TArray<AActor*>{this},
-			EDrawDebugTrace::ForDuration,
-			HitRes1st,
-			true
-		);
-		if (bIsHit)
-		{
-			return;
-		}
-		else
-		{
-			FHitResult HitRes2nd;
-			bIsHit = UKismetSystemLibrary::SphereTraceSingle(
-				GetWorld(),
-				Start,
-				End,
-				20.0f,
-				ETType2nd,
-				false,
-				TArray<AActor*>{this},
-				EDrawDebugTrace::ForDuration,
-				HitRes2nd,
-				true
-			);
-			if (bIsHit)
-			{
-				AXAI_Character* AICha = Cast<AXAI_Character>(HitRes2nd.Actor);
-				if (AICha && AICha->Implements<UXDamageInterface>())
-				{
-					IXDamageInterface::Execute_TakeDamage(AICha, DamageInfo);
-					UGameplayStatics::ApplyDamage(AICha, 5.0f, nullptr, this, nullptr);
-				}
-			}
-		}
-	}*/
+{
 	if (Stance != EPlayerStance::EPS_Magic) return;
+	if (bAttacking) return;
 	bAttacking = true;
 	bCanMove = false;
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
@@ -402,7 +357,7 @@ void AXClimbCharacter::DefaultStance()
 void AXClimbCharacter::CallOnDeath()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Character On Death"));
-	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(CharacterHPWidget->GetWidget());
+	UXWidget_CharacterOverShow* Widget = XCharacterHUD->CharacterShowWdg;
 	if (Widget)
 	{
 		Widget->HealthBar->SetPercent(0);
@@ -418,15 +373,16 @@ void AXClimbCharacter::CallOnBlocked(bool bCanbeParried)
 	UE_LOG(LogTemp, Warning, TEXT("Character On Blocked"));
 }
 
-void AXClimbCharacter::CallOnDamageResponse(EDamageResponse DamageResponse)
+void AXClimbCharacter::CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor)
 {
 	float value = PlayerStatesComponent->GetCurHealth();
 	float MaxHealth = PlayerStatesComponent->GetMaxHealth();
-	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(CharacterHPWidget->GetWidget());
+	UXWidget_CharacterOverShow* Widget = XCharacterHUD->CharacterShowWdg;
 	if (Widget)
 	{
 		Widget->HealthBar->SetPercent(value / MaxHealth);
 	}
+	PlayAnimMontage(OnHitMontage);
 	UE_LOG(LogTemp, Warning, TEXT("Character On DamageResponse"));
 }
 
@@ -442,9 +398,27 @@ void AXClimbCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNo
 
 		FTransform trans;
 		trans.SetLocation(GetMesh()->GetSocketLocation(TEXT("hand_rSocket")));
+
+		ETraceTypeQuery ETTQ = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
+
+		FHitResult RealHit;
+		bool bIsHit = UKismetSystemLibrary::LineTraceSingle(
+			GetWorld(),
+			TP_Camera->GetComponentLocation(),
+			TP_Camera->GetComponentLocation() + TP_Camera->GetForwardVector() * 10000.0f,
+			ETTQ,
+			false,
+			TArray<AActor*>{this},
+			EDrawDebugTrace::None,
+			RealHit,
+			true
+		);
+
+		FVector TargetLoc = bIsHit ? RealHit.ImpactPoint : TP_Camera->GetComponentLocation() + TP_Camera->GetForwardVector() * 1000.0f;
+
 		FRotator Rot = UKismetMathLibrary::FindLookAtRotation(
 			GetMesh()->GetSocketLocation(TEXT("hand_rSocket")),
-			TP_Camera->GetComponentLocation() + TP_Camera->GetForwardVector() * 1000.0f
+			TargetLoc
 		);
 		trans.SetRotation(Rot.Quaternion());
 

@@ -88,7 +88,7 @@ void UXCombatComponent::OnProjectileHit(AActor* OtherActor, const FHitResult& Hi
 {
 	if (OtherActor && OtherActor->Implements<UXDamageInterface>())
 	{
-		IXDamageInterface::Execute_TakeDamage(OtherActor, DamageInfo);
+		IXDamageInterface::Execute_TakeDamage(OtherActor, DamageInfo, GetOwner());
 	}
 
 	//对应蓝图中的ReportDamageEvent
@@ -124,7 +124,7 @@ void UXCombatComponent::FireBullet(FVector TraceStart, FVector TraceEnd, FDamage
 		AActor* TargetActor = Cast<AActor>(HitRes.Actor);
 		if (TargetActor && TargetActor->Implements<UXDamageInterface>())
 		{
-			IXDamageInterface::Execute_TakeDamage(TargetActor, damageinfo);
+			IXDamageInterface::Execute_TakeDamage(TargetActor, damageinfo, GetOwner());
 		}
 
 		FAIDamageEvent DamageEvent;
@@ -159,7 +159,7 @@ void UXCombatComponent::SwordAttack(FVector TraceStart, FVector TraceEnd, FDamag
 		AActor* TargetActor = Cast<AActor>(HitRes.Actor);
 		if (TargetActor && TargetActor->Implements<UXDamageInterface>())
 		{
-			IXDamageInterface::Execute_TakeDamage(TargetActor, damageinfo);
+			IXDamageInterface::Execute_TakeDamage(TargetActor, damageinfo, GetOwner());
 		}
 
 		FAIDamageEvent DamageEvent;

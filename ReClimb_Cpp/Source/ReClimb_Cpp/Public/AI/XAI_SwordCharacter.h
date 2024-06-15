@@ -42,7 +42,7 @@ public:
 		void EndBlockMontage(UAnimMontage* Montage, bool bInterrupted);
 
 	virtual void CallOnBlocked_Implementation(bool bCanbeParried);
-	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse);
+	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor);
 
 	/**     PlayMontage   **/
 	//Attack
@@ -60,7 +60,10 @@ public:
 
 	UFUNCTION()
 		void EndSheathMontage(UAnimMontage* Montage, bool bInterrupted);
+
+
 public:
+	//Control Block CoolDownTime
 	bool bCanBlock = true;
 	FTimerHandle CoolDownBlock;
 	UFUNCTION()

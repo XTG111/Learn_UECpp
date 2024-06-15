@@ -8,7 +8,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCallOnDeath);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCallOnDamageResponse, EDamageResponse, DamageResponse);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCallOnDamageResponse, EDamageResponse, DamageResponse, AActor*, DamageCausor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCallOnBlocked, bool, bCanbeParried);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -59,7 +59,7 @@ public:
 
 public:
 	float Heal(float Amount);
-	bool TakeDamage(struct FDamageInfo DamageInfo);
+	bool TakeDamage(struct FDamageInfo DamageInfo, AActor* DamageCausor);
 	int CanBeDamaged(bool bShouldDamageInvincible, bool bCanbeBlocked);
 
 public:

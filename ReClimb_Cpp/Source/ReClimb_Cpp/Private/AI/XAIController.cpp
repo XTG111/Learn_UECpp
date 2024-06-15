@@ -16,18 +16,6 @@
 
 AXAIController::AXAIController()
 {
-	//static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTObject(TEXT("BehaviorTree'/Game/BluePrint/AI_CPP/AIControl/BHT_XAIBase.BHT_XAIBase'"));
-	//if (BTObject.Succeeded())
-	//{
-	//	BehaviorTree = BTObject.Object;
-	//}
-
-	//static ConstructorHelpers::FObjectFinder<UBlackboard> BBObject(TEXT("BlackboardData'/Game/BluePrint/AI/AIControl/BB_AIBase.BB_AIBase'"));
-	//if (BBObject.Succeeded())
-	//{
-	//	BlackboardData = BBObject.Object;
-	//}
-
 	//添加AIPerceptionComponent组件
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
 	SetPerceptionComponent(*AIPerceptionComponent);
@@ -101,9 +89,24 @@ void AXAIController::SetStateAsAttacking(AActor* AttackTarget, bool bUseLastTarg
 	AActor* NewActor = (bUseLastTarget && AttackTargetActor) ? AttackTargetActor : AttackTarget;
 	if (NewActor)
 	{
-		Blackboard->SetValueAsObject(AttackTargetKeyName, NewActor);
-		Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
-		AttackTargetActor = NewActor;
+		if (NewActor && NewActor->Implements<UXDamageInterface>())
+		{
+			//判断角色是否已经死亡
+			if (IXDamageInterface::Execute_IsDead(NewActor))
+			{
+				SetStateAsPassive();
+			}
+			else
+			{
+				Blackboard->SetValueAsObject(AttackTargetKeyName, NewActor);
+				Blackboard->SetValueAsEnum(AIStateKeyName, static_cast<uint8>(EAIState::EASt_Attacking));
+				AttackTargetActor = NewActor;
+			}
+		}
+	}
+	else
+	{
+		SetStateAsPassive();
 	}
 }
 

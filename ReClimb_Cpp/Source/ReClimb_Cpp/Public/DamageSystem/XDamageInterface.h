@@ -29,7 +29,7 @@ public:
 		float GetMaxHealth();
 	//return IsDamaged
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		bool TakeDamage(FDamageInfo DamageInfo);
+		bool TakeDamage(FDamageInfo DamageInfo, AActor* DamageCausor);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		float Heal(float Amount);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)

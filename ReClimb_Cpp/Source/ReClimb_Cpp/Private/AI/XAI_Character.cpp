@@ -11,7 +11,6 @@
 #include "Component/XPlayerStatsComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Widget/XWidget_EnemyHeadHP.h"
-#include "DamageSystem/XDamageComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Struct/XStructInfo.h"
 #include "Components/ProgressBar.h"
@@ -127,9 +126,9 @@ float AXAI_Character::GetMaxHealth_Implementation()
 	return AIStatesComponent->GetMaxHealth();
 }
 
-bool AXAI_Character::TakeDamage_Implementation(FDamageInfo DamageInfo)
+bool AXAI_Character::TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor)
 {
-	return AIStatesComponent->TakeDamage(DamageInfo);
+	return AIStatesComponent->TakeDamage(DamageInfo, DamageCausor);
 }
 
 float AXAI_Character::Heal_Implementation(float Amount)
@@ -176,8 +175,9 @@ void AXAI_Character::CallOnBlocked_Implementation(bool bCanbeParried)
 	UE_LOG(LogTemp, Warning, TEXT("AI On Blocked"));
 }
 
-void AXAI_Character::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse)
+void AXAI_Character::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor)
 {
+	MakeDamageActor = DamageCausor;
 	float value = AIStatesComponent->GetCurHealth();
 	float MaxHealth = AIStatesComponent->GetMaxHealth();
 	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
@@ -197,7 +197,7 @@ void AXAI_Character::CallOnDamageResponse_Implementation(EDamageResponse DamageR
 
 void AXAI_Character::OnHitMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
-	AIController->SetStateAsAttacking(AIController->GetAttackTargetActor(), false);
+	AIController->SetStateAsAttacking(MakeDamageActor, false);
 }
 
 void AXAI_Character::SetIsWiledWeapon(bool bSet)

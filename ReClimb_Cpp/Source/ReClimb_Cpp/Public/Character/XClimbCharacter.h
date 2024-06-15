@@ -29,17 +29,12 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	//血条
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<UUserWidget> HPWidget;
-	UPROPERTY(VisibleAnywhere)
-		class UWidgetComponent* CharacterHPWidget;
-
 	//攻击动画
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* MagicAttackMontage;
-
-
+	//受击动画
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* OnHitMontage;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -58,6 +53,12 @@ private:
 	//战斗组件
 	UPROPERTY(VisibleAnywhere)
 		class UXCombatComponent* CombatComponent;
+	//玩家控制器
+	UPROPERTY()
+		class APlayerController* PIC;
+	//HUD
+	UPROPERTY()
+		class AXHUD* XCharacterHUD;
 
 	//玩家当前的状态
 	EPlayerStance Stance;
@@ -90,7 +91,7 @@ public:
 
 	float GetMaxHealth_Implementation();
 
-	bool TakeDamage_Implementation(FDamageInfo DamageInfo);
+	bool TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor);
 
 	float Heal_Implementation(float Amount);
 
@@ -142,7 +143,7 @@ public:
 	UFUNCTION()
 		void CallOnBlocked(bool bCanbeParried);
 	UFUNCTION()
-		void CallOnDamageResponse(EDamageResponse DamageResponse);
+		void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);
 
 	//Montage Call
 	UFUNCTION()

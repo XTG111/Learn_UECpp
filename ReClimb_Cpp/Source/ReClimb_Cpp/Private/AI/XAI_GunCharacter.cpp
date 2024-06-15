@@ -112,10 +112,14 @@ void AXAI_GunCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointN
 		{
 			{
 				AActor* TargetActor = AIC->GetAttackTargetActor();
-				if (TargetActor)
+				if (TargetActor && TargetActor->Implements<UXDamageInterface>())
 				{
-					FVector End = TargetActor->GetActorLocation();
-					CombatComponent->FireBullet(Start, End, DamageInfo, this);
+					if (!IXDamageInterface::Execute_IsDead(TargetActor))
+					{
+						FVector End = TargetActor->GetActorLocation();
+						CombatComponent->FireBullet(Start, End, DamageInfo, this);
+					}
+					else AIC->SetStateAsPassive();
 				}
 			}
 		}

@@ -45,7 +45,7 @@ float UXPlayerStatsComponent::Heal(float Amount)
 	return CurHealth;
 }
 
-bool UXPlayerStatsComponent::TakeDamage(FDamageInfo DamageInfo)
+bool UXPlayerStatsComponent::TakeDamage(FDamageInfo DamageInfo, AActor* DamageCausor)
 {
 	int check = CanBeDamaged(DamageInfo.bShouldDamageInvincible, DamageInfo.bCanBeBlocked);
 	if (check == 0)
@@ -67,7 +67,7 @@ bool UXPlayerStatsComponent::TakeDamage(FDamageInfo DamageInfo)
 			//检测该伤害是否可以被打断
 			if (bIsInterruptible || DamageInfo.bShouldForceInterrupt)
 			{
-				OnDamageResponse.Broadcast(DamageInfo.DamageResponse);
+				OnDamageResponse.Broadcast(DamageInfo.DamageResponse, DamageCausor);
 				return true;
 			}
 			else return false;
