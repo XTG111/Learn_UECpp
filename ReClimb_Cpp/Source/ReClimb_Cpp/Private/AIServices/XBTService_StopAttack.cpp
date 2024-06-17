@@ -12,7 +12,7 @@ void UXBTService_StopAttack::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	if (AICon)
 	{
 		AXAI_Character* ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
-		AXAI_Character* AttackActor = Cast<AXAI_Character>(AICon->GetBlackboardComponent()->GetValueAsObject(AttackTarget.SelectedKeyName));
+		AActor* AttackActor = Cast<AActor>(AICon->GetBlackboardComponent()->GetValueAsObject(AttackTarget.SelectedKeyName));
 		if (AttackActor && AttackActor->Implements<UXDamageInterface>())
 		{
 			bool bIsDead = IXDamageInterface::Execute_IsDead(AttackActor);

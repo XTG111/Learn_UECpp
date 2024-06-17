@@ -53,17 +53,29 @@ public:
 
 public:
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 
 	virtual void BeginPlay() override;
 
 	//设置当前AI的状态
 	void SetStateAsPassive();
 	void SetStateAsDead();
-	void SetStateAsInvestigatinig(const FVector& Location);
+	void SetStateAsInvestigatinig(FVector Location);
+	UFUNCTION()
+		void SetStateAsSeeking(FVector Location);
 	void SetStateAsAttacking(AActor* AttackTarget, bool bUseLastTarget);
 	void SetStateAsFrozen();
 
 	//AI Sense
+	TArray<AActor*> AlreadySeeActors;
+	//tick 调用，去判断AlreadySeeActors数组中Actor是否仍然在AI的SeeSense里面
+	UFUNCTION()
+		void ForgottenSeeActor();
+	FTimerHandle CheckForgottenTimer;
+
+	FTimerHandle SeekingBeginTimer;
+	void SeekingActor(AActor* Actor);
+
 
 	//Check Sense Result
 	bool CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Simulus);
@@ -72,8 +84,13 @@ public:
 	void HandleSenseSound(const FVector& Location);
 	void HandleSenseSight(AActor* Actor);
 	void HandleSenseDamage(AActor* Actor);
+	//当忘记目标
+	void HandleForgetSeeActor(AActor* Actor);
+	//当失去视野 --> 发生在忘记目标前
+	void HandleLostSight(AActor* Actor);
 
 	//绑定函数
-	UFUNCTION()
-		void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+	virtual void ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+	//UFUNCTION()
+	//	void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 };

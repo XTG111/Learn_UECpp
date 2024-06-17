@@ -5,6 +5,7 @@
 #include "AI/XAIController.h"
 #include "AI/XAI_Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 EBTNodeResult::Type UXBTTask_SelfMoveTo::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -18,11 +19,11 @@ EBTNodeResult::Type UXBTTask_SelfMoveTo::ExecuteTask(UBehaviorTreeComponent& Own
 			AICon->ReceiveMoveCompleted.Clear();
 			FinishDelegate.BindUObject(this, &UXBTTask_SelfMoveTo::FinishEnd, &OwnerComp);
 			AICon->ReceiveMoveCompleted.AddDynamic(this, &UXBTTask_SelfMoveTo::MoveEndCall);
-			AActor* AttackActor = AICon->GetAttackTargetActor();
+
 			//通过设定黑板值，限制范围
+			AActor* AttackActor = AICon->GetAttackTargetActor();
 			float Radius = AICon->GetBlackboardComponent()->GetValueAsFloat(IdealRange.SelectedKeyName);
 			AICon->MoveToActor(AttackActor, Radius, false);
-			//AICon->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &UXBTTask_SelfMoveTo::MoveEndCall);
 		}
 	}
 	return EBTNodeResult::InProgress;

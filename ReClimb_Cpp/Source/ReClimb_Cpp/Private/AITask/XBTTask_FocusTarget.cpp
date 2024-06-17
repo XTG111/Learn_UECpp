@@ -12,8 +12,12 @@ EBTNodeResult::Type UXBTTask_FocusTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 	if (AICon)
 	{
 		AActor* Target = Cast<AActor>(AICon->GetBlackboardComponent()->GetValueAsObject(AttackTargetKey.SelectedKeyName));
-		AICon->SetFocus(Target, EAIFocusPriority::LastFocusPriority);
-		return EBTNodeResult::Succeeded;
+		if (IsValid(Target))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Actor"));
+			AICon->SetFocus(Target, EAIFocusPriority::LastFocusPriority);
+			return EBTNodeResult::Succeeded;
+		}
 	}
 	return EBTNodeResult::Failed;
 }

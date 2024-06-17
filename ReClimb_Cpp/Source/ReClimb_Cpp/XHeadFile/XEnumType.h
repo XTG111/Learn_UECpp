@@ -50,8 +50,10 @@ enum class EAIState : uint8
 	EASt_Attacking UMETA(DisplayName = "Attacking"),
 	EASt_Frozen UMETA(DisplayName = "Frozen"),
 	EASt_Investingating UMETA(DisplayName = "Investingating"),
+	EASt_Seeking UMETA(DisplayName = "Seeking"),
 	EASt_Dead UMETA(DisplayeName = "Dead")
 };
+//GENERATED_BODY()
 
 //AIMovementEnum
 UENUM(BlueprintType)

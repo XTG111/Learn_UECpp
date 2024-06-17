@@ -41,6 +41,8 @@ public:
 		UAnimMontage* AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* HitMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* JumpMontage;
 	UPROPERTY(VisibleAnywhere)
 		class AXLineBase* Patrol;
 
@@ -78,6 +80,7 @@ public:
 	void EquipWeapon_Implementation() override;
 	void UnEquipWeapon_Implementation() override;
 	void Attack_Implementation() override;
+	void JumpToLoc_Implementation(FVector Location) override;
 
 
 	//DamageInterface

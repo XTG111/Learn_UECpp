@@ -20,14 +20,13 @@ void AXHUD::DrawHUD()
 	FVector2D ViewPortSize;
 	if (GEngine)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DrawHUD"));
 		//»ñÈ¡ÆÁÄ»³ß´ç
 		GEngine->GameViewport->GetViewportSize(ViewPortSize);
 		const FVector2D ViewPortCenter(ViewPortSize.X / 2.f, ViewPortSize.Y / 2.f);
 
 		if (HUDPackage.CrosshairsCenter)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("CrosshairsCenter"));
+			//UE_LOG(LogTemp, Warning, TEXT("CrosshairsCenter"));
 			FVector2D Spread(0.f, 0.f);
 			DrawCrosshair(HUDPackage.CrosshairsCenter, ViewPortCenter, Spread, HUDPackage.CrosshairColor);
 		}

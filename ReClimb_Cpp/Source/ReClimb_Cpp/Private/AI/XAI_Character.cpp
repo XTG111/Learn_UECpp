@@ -116,6 +116,24 @@ void AXAI_Character::Attack_Implementation()
 {
 }
 
+void AXAI_Character::JumpToLoc_Implementation(FVector Location)
+{
+	UE_LOG(LogTemp, Warning, TEXT("JumpToLoc"));
+	//PlayAnimMontage(JumpMontage);
+	FVector LaunchVelocity;
+	FVector EndLoc = FVector{ Location.X,Location.Y,Location.Z + 250.f };
+	UGameplayStatics::SuggestProjectileVelocity_CustomArc(
+		GetWorld(),
+		LaunchVelocity,
+		GetActorLocation(),
+		EndLoc,
+		0.0f,
+		0.5f
+	);
+	//以一定速度将Actor发射出去
+	LaunchCharacter(LaunchVelocity, true, true);
+}
+
 float AXAI_Character::GetCurrentHealth_Implementation()
 {
 	return AIStatesComponent->GetCurHealth();

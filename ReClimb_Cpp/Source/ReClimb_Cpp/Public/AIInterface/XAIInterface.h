@@ -35,4 +35,6 @@ public:
 		void UnEquipWeapon();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void Attack();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void JumpToLoc(FVector Location);
 };
