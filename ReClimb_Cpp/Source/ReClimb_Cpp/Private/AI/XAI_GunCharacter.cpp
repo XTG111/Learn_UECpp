@@ -85,13 +85,14 @@ void AXAI_GunCharacter::GetIdealRange_Implementation(float& AttackRadius, float&
 	DefendRadius = 600.0f;
 }
 
-void AXAI_GunCharacter::Attack_Implementation()
+void AXAI_GunCharacter::Attack_Implementation(AActor* AttakTarget)
 {
+	Super::Attack_Implementation(AttakTarget);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
 	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
-	PlayAnimMontage(AttackMontage);
 	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_GunCharacter::OnNotifyMontage);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_GunCharacter::OnAttackMontageEnd);
+	PlayAnimMontage(AttackMontage);
 }
 
 void AXAI_GunCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -107,20 +108,16 @@ void AXAI_GunCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointN
 		DamageInfo.DamageType = EDamageType::EDT_Projectile;
 		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
 		DamageInfo.bCanBeBlocked = true;
-
 		if (AIC)
 		{
+			if (AttackTargetActor && AttackTargetActor->Implements<UXDamageInterface>())
 			{
-				AActor* TargetActor = AIC->GetAttackTargetActor();
-				if (TargetActor && TargetActor->Implements<UXDamageInterface>())
+				if (!IXDamageInterface::Execute_IsDead(AttackTargetActor))
 				{
-					if (!IXDamageInterface::Execute_IsDead(TargetActor))
-					{
-						FVector End = TargetActor->GetActorLocation();
-						CombatComponent->FireBullet(Start, End, DamageInfo, this);
-					}
-					else AIC->SetStateAsPassive();
+					FVector End = AttackTargetActor->GetActorLocation();
+					CombatComponent->FireBullet(Start, End, DamageInfo, this);
 				}
+				else AIC->SetStateAsPassive();
 			}
 		}
 	}
@@ -128,6 +125,6 @@ void AXAI_GunCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointN
 
 void AXAI_GunCharacter::OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
-	CallOnAttackEndCall.Broadcast();
+	IXAIInterface::Execute_AttackEnd(this, AttackTargetActor);
 }
 

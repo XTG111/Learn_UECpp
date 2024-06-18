@@ -33,14 +33,17 @@ void AXAI_SwordCharacter::UnEquipWeapon_Implementation()
 	SheathSword();
 }
 
-void AXAI_SwordCharacter::Attack_Implementation()
+void AXAI_SwordCharacter::Attack_Implementation(AActor* AttakTarget)
 {
-	bAttacking = true;
+	Super::Attack_Implementation(AttakTarget);
+	UE_LOG(LogTemp, Warning, TEXT("Attack"));
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
 	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
-	PlayAnimMontage(AttackMontage);
 	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_SwordCharacter::OnNotifyMontage);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndAttackMontage);
+	PlayAnimMontage(AttackMontage);
+
+	AIStatesComponent->SetbIsInterruptible(false);
 }
 
 void AXAI_SwordCharacter::GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius)
@@ -94,8 +97,9 @@ void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse Da
 
 void AXAI_SwordCharacter::EndAttackMontage(UAnimMontage* Montage, bool bInterrupted)
 {
-	bAttacking = false;
-	CallOnAttackEndCall.Broadcast();
+	UE_LOG(LogTemp, Warning, TEXT("EndAttack"));
+	IXAIInterface::Execute_AttackEnd(this, AttackTargetActor);
+	AIStatesComponent->SetbIsInterruptible(true);
 }
 
 void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -113,17 +117,15 @@ void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPoin
 
 		if (AIC)
 		{
-			AActor* TargetActor = AIC->GetAttackTargetActor();
-			if (TargetActor && TargetActor->Implements<UXDamageInterface>())
+			if (AttackTargetActor && AttackTargetActor->Implements<UXDamageInterface>())
 			{
-				if (!IXDamageInterface::Execute_IsDead(TargetActor))
+				if (!IXDamageInterface::Execute_IsDead(AttackTargetActor))
 				{
 					FVector End = Start + GetActorForwardVector() * 300.0f;
 					CombatComponent->SwordAttack(Start, End, DamageInfo, this);
 				}
 				else AIC->SetStateAsPassive();
 			}
-
 		}
 	}
 }

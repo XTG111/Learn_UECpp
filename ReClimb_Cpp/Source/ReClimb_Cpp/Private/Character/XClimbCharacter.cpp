@@ -73,6 +73,7 @@ void AXClimbCharacter::BeginPlay()
 		PlayerStatesComponent->OnDeath.AddDynamic(this, &AXClimbCharacter::CallOnDeath);
 		PlayerStatesComponent->OnBlocked.AddDynamic(this, &AXClimbCharacter::CallOnBlocked);
 		PlayerStatesComponent->OnDamageResponse.AddDynamic(this, &AXClimbCharacter::CallOnDamageResponse);
+		PlayerStatesComponent->SetAttackTokenCount(2);
 	}
 	PIC = PIC == nullptr ? Cast<APlayerController>(this->Controller) : PIC;
 	if (PIC)
@@ -153,6 +154,16 @@ bool AXClimbCharacter::IsDead_Implementation()
 bool AXClimbCharacter::IsAttacking_Implementation()
 {
 	return bAttacking;
+}
+
+bool AXClimbCharacter::ReserveAttackToken_Implementation(int Amount)
+{
+	return PlayerStatesComponent->ReserveAttackToken(Amount);
+}
+
+void AXClimbCharacter::ReturnAttackToken_Implementation(int Amount)
+{
+	PlayerStatesComponent->ReturnAttackToken(Amount);
 }
 
 void AXClimbCharacter::MoveForWard(float value)

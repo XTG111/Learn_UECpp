@@ -24,7 +24,7 @@ public:
 	void UnEquipWeapon_Implementation() override;
 	float SetMovementSpeed_Implementation(EAIMovement SpeedEnum) override;
 	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius) override;
-	void Attack_Implementation() override;
+	void Attack_Implementation(AActor* AttakTarget) override;
 
 	UFUNCTION()
 		void OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);

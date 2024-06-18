@@ -36,4 +36,11 @@ public:
 		bool IsDead();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		bool IsAttacking();
+
+	//Multi-AI Attack
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		bool ReserveAttackToken(int Amount);
+	//
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void ReturnAttackToken(int Amount);
 };

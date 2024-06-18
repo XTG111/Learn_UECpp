@@ -34,7 +34,16 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void UnEquipWeapon();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-		void Attack();
+		void Attack(AActor* AttakTarget);
+	//在攻击之前先判断Token是否满足
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		bool AttackStart(AActor* AttackTarget, int TokenNeeded);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void AttackEnd(AActor* AttackTarget);
+	//当AI死亡，如果其有Token将Token返回，该函数用来保存该AI具有的Token
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void StoreAttackToken(AActor* AttackTarget, int TokenNeeded);
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void JumpToLoc(FVector Location);
 };

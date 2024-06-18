@@ -91,3 +91,18 @@ int UXPlayerStatsComponent::CanBeDamaged(bool bShouldDamageInvincible, bool bCan
 	else return 2; //No Damage
 }
 
+bool UXPlayerStatsComponent::ReserveAttackToken(int Amount)
+{
+	if (AttackTokenCount >= Amount)
+	{
+		AttackTokenCount -= Amount;
+		return true;
+	}
+	else return false;
+}
+
+void UXPlayerStatsComponent::ReturnAttackToken(int Amount)
+{
+	AttackTokenCount += Amount;
+}
+

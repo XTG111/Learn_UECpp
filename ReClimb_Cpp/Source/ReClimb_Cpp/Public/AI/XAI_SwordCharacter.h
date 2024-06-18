@@ -23,7 +23,7 @@ public:
 
 	void EquipWeapon_Implementation() override;
 	void UnEquipWeapon_Implementation() override;
-	void Attack_Implementation() override;
+	void Attack_Implementation(AActor* AttakTarget) override;
 	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius) override;
 
 

@@ -4,6 +4,7 @@
 #include "AITask/XBTTask_DefaultAttack.h"
 #include "AI/XAIController.h"
 #include "AI/XAI_Character.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 EBTNodeResult::Type UXBTTask_DefaultAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -18,7 +19,8 @@ EBTNodeResult::Type UXBTTask_DefaultAttack::ExecuteTask(UBehaviorTreeComponent& 
 			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_DefaultAttack::Finish);
 			if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
 			{
-				IXAIInterface::Execute_Attack(ControlledPawn);
+				AActor* TargetActor = Cast<AActor>(AICon->GetBlackboardComponent()->GetValueAsObject(AttackTargetKey.SelectedKeyName));
+				IXAIInterface::Execute_Attack(ControlledPawn, TargetActor);
 			}
 		}
 	}

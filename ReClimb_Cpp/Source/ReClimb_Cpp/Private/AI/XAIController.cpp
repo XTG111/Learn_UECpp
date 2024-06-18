@@ -157,13 +157,19 @@ void AXAIController::ForgottenSeeActor()
 	int LastLen = AlreadySeeActors.Num();
 	if (NowLen != LastLen)
 	{
-		for (int i = 0; i < LastLen; i++)
+		for (int i = 0; i < AlreadySeeActors.Num(); i++)
 		{
 			//说明当前actor 被遗忘了
-			if (NowSeeActor.Find(AlreadySeeActors[i]) == INDEX_NONE)
+			if (!NowSeeActor.Contains(AlreadySeeActors[i]))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Forgotten"));
-				HandleForgetSeeActor(AlreadySeeActors[i]);
+				if (AlreadySeeActors[i] && AlreadySeeActors[i]->Implements<UXDamageInterface>())
+				{
+					if (!IXDamageInterface::Execute_IsDead(AlreadySeeActors[i]))
+					{
+						HandleForgetSeeActor(AlreadySeeActors[i]);
+					}
+				}
 			}
 		}
 	}
@@ -252,7 +258,7 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 	//将看到的Actor加入到数组中
 	UE_LOG(LogTemp, Warning, TEXT("SeeActor"));
 	AlreadySeeActors.AddUnique(Actor);
-	bool check = true;//temp == Cast<ACharacter>(Actor);
+	bool check = temp == Cast<ACharacter>(Actor);
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{

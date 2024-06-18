@@ -88,16 +88,13 @@ public:
 	//Interface
 public:
 	float GetCurrentHealth_Implementation();
-
 	float GetMaxHealth_Implementation();
-
 	bool TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor);
-
 	float Heal_Implementation(float Amount);
-
 	bool IsDead_Implementation();
-
 	bool IsAttacking_Implementation();
+	bool ReserveAttackToken_Implementation(int Amount);
+	void ReturnAttackToken_Implementation(int Amount);
 
 public:
 	/*

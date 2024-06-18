@@ -41,8 +41,6 @@ public:
 		UAnimMontage* AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* HitMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
-		UAnimMontage* JumpMontage;
 	UPROPERTY(VisibleAnywhere)
 		class AXLineBase* Patrol;
 
@@ -66,6 +64,12 @@ public:
 
 	UPROPERTY()
 		AActor* MakeDamageActor;
+	UPROPERTY()
+		AActor* AttackTargetActor;
+	//存储AttackTarget和对其消耗的Token
+	TMap<AActor*, int> CostTokenForTarget;
+	//当前这次攻击需要消耗的Token
+	int CurAttackNeedToken;
 
 	inline bool GetIsWiledWeapon() { return bIsWiledWeapon; }
 
@@ -79,7 +83,7 @@ public:
 	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius) override;
 	void EquipWeapon_Implementation() override;
 	void UnEquipWeapon_Implementation() override;
-	void Attack_Implementation() override;
+	void Attack_Implementation(AActor* AttakTarget) override;
 	void JumpToLoc_Implementation(FVector Location) override;
 
 
@@ -90,8 +94,14 @@ public:
 	float Heal_Implementation(float Amount);
 	bool IsDead_Implementation();
 	bool IsAttacking_Implementation();
+	bool ReserveAttackToken_Implementation(int Amount);
+	void ReturnAttackToken_Implementation(int Amount);
+	bool AttackStart_Implementation(AActor* AttackTarget, int TokenNeeded);
+	void AttackEnd_Implementation(AActor* AttackTarget);
+	void StoreAttackToken_Implementation(AActor* AttackTarget, int TokenNeeded);
 
 public:
+
 
 	FOnAttackEnd CallOnAttackEndCall;
 	FOnEquipWeapon CallOnEquipWeapon;

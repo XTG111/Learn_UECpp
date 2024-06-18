@@ -40,27 +40,41 @@ private:
 	bool bIsInterruptible = true;
 	bool bIsBlocking = false;
 
+	//多人攻击Token
+	int AttackTokenCount = 1;
+
+
 public:
-	inline float GetMaxHealth() { return MaxHealth; }
-	inline float GetMaxStamina() { return MaxStamina; }
-	inline void SetMaxHealth(float value) { MaxHealth = value; }
-	inline void SetMaxStamina(float value) { MaxStamina = value; }
+	FORCEINLINE float GetMaxHealth() { return MaxHealth; }
+	FORCEINLINE float GetMaxStamina() { return MaxStamina; }
+	FORCEINLINE void SetMaxHealth(float value) { MaxHealth = value; }
+	FORCEINLINE void SetMaxStamina(float value) { MaxStamina = value; }
 
-	inline float GetCurHealth() { return CurHealth; }
-	inline float GetCurStamina() { return CurStamina; }
+	FORCEINLINE float GetCurHealth() { return CurHealth; }
+	FORCEINLINE float GetCurStamina() { return CurStamina; }
 	void SetCurHealth(float value);
-	inline void SetCurStamina(float value) { CurStamina = value; }
+	FORCEINLINE void SetCurStamina(float value) { CurStamina = value; }
 
-	inline bool GetIsDeath() { return bIsDeath; }
-	inline void SetIsDeath(bool bdeath) { bIsDeath = bdeath; }
+	FORCEINLINE bool GetIsDeath() { return bIsDeath; }
+	FORCEINLINE void SetIsDeath(bool bdeath) { bIsDeath = bdeath; }
 
-	inline bool GetIsBlocking() { return bIsBlocking; }
-	inline void SetIsBlocking(bool bblockiing) { bIsBlocking = bblockiing; }
+	FORCEINLINE bool GetIsBlocking() { return bIsBlocking; }
+	FORCEINLINE void SetIsBlocking(bool bblockiing) { bIsBlocking = bblockiing; }
+
+	FORCEINLINE bool GetbIsInterruptible() { return bIsInterruptible; }
+	FORCEINLINE void SetbIsInterruptible(bool biinter) { bIsInterruptible = biinter; }
+
+	FORCEINLINE int GetAttackTokenCount() { return AttackTokenCount; }
+	FORCEINLINE void SetAttackTokenCount(int num) { AttackTokenCount = num; }
 
 public:
 	float Heal(float Amount);
 	bool TakeDamage(struct FDamageInfo DamageInfo, AActor* DamageCausor);
 	int CanBeDamaged(bool bShouldDamageInvincible, bool bCanbeBlocked);
+	//检查当前的AttackToken是否多于正在请求的数量Amount
+	bool ReserveAttackToken(int Amount);
+	//当AI攻击完成后，返回Amount数量的Token
+	void ReturnAttackToken(int Amount);
 
 public:
 	FCallOnDeath OnDeath;

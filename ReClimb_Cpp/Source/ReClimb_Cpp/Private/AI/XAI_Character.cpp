@@ -32,6 +32,8 @@ AXAI_Character::AXAI_Character()
 	EnemyHPWidget->SetDrawSize(FVector2D(200, 20)); // Example size
 	EnemyHPWidget->SetWidgetSpace(EWidgetSpace::Screen);
 
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
@@ -112,14 +114,15 @@ void AXAI_Character::UnEquipWeapon_Implementation()
 
 }
 
-void AXAI_Character::Attack_Implementation()
+void AXAI_Character::Attack_Implementation(AActor* AttakTarget)
 {
+	bAttacking = true;
+	AttackTargetActor = AttakTarget;
 }
 
 void AXAI_Character::JumpToLoc_Implementation(FVector Location)
 {
 	UE_LOG(LogTemp, Warning, TEXT("JumpToLoc"));
-	//PlayAnimMontage(JumpMontage);
 	FVector LaunchVelocity;
 	FVector EndLoc = FVector{ Location.X,Location.Y,Location.Z + 250.f };
 	UGameplayStatics::SuggestProjectileVelocity_CustomArc(
@@ -171,9 +174,61 @@ bool AXAI_Character::IsAttacking_Implementation()
 	return bAttacking;
 }
 
+bool AXAI_Character::ReserveAttackToken_Implementation(int Amount)
+{
+	return AIStatesComponent->ReserveAttackToken(Amount);
+}
+
+void AXAI_Character::ReturnAttackToken_Implementation(int Amount)
+{
+	AIStatesComponent->ReturnAttackToken(Amount);
+}
+
+bool AXAI_Character::AttackStart_Implementation(AActor* AttackTarget, int TokenNeeded)
+{
+	//校验是否有足够的Token可以供该AI使用攻击
+	if (AttackTarget && AttackTarget->Implements<UXDamageInterface>())
+	{
+		if (IXDamageInterface::Execute_ReserveAttackToken(AttackTarget, TokenNeeded))
+		{
+			//当有足够的Token将进行攻击，并且存储Token值
+			IXAIInterface::Execute_StoreAttackToken(this, AttackTarget, TokenNeeded);
+			CurAttackNeedToken = TokenNeeded;
+			return true;
+		}
+		else return false;
+	}
+	return false;
+}
+
+void AXAI_Character::AttackEnd_Implementation(AActor* AttackTarget)
+{
+	if (AttackTarget && AttackTarget->Implements<UXDamageInterface>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttackEnd ReturnToken"));
+		IXDamageInterface::Execute_ReturnAttackToken(AttackTarget, CurAttackNeedToken);
+		int NeedRemoveTokenFromMap = -1 * CurAttackNeedToken;
+		IXAIInterface::Execute_StoreAttackToken(this, AttackTarget, NeedRemoveTokenFromMap);
+	}
+	bAttacking = false;
+	CallOnAttackEndCall.Broadcast();
+}
+
+void AXAI_Character::StoreAttackToken_Implementation(AActor* AttackTarget, int TokenNeeded)
+{
+	if (CostTokenForTarget.Find(AttackTarget))
+	{
+		CostTokenForTarget[AttackTarget] += TokenNeeded;
+	}
+	else
+	{
+		CostTokenForTarget.Add(AttackTarget, TokenNeeded);
+	}
+}
+
 void AXAI_Character::CallOnDeath_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AI On Death"));
+	//UE_LOG(LogTemp, Warning, TEXT("AI On Death"));
 	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
 	if (Widget)
 	{
@@ -185,6 +240,15 @@ void AXAI_Character::CallOnDeath_Implementation()
 	FString Reason = TEXT("Dead");
 	AIController->GetBrainComponent()->StopLogic(Reason);
 	AIController->SetStateAsDead();
+	Widget->SetVisibility(ESlateVisibility::Hidden);
+	for (auto& pair : CostTokenForTarget)
+	{
+		AActor* actor = pair.Key;
+		if (actor && actor->Implements<UXDamageInterface>())
+		{
+			IXDamageInterface::Execute_ReturnAttackToken(actor, pair.Value);
+		}
+	}
 }
 
 
