@@ -184,6 +184,11 @@ void AXAI_Character::ReturnAttackToken_Implementation(int Amount)
 	AIStatesComponent->ReturnAttackToken(Amount);
 }
 
+int AXAI_Character::GetTeamNumber_Implementation()
+{
+	return TeamNum;
+}
+
 bool AXAI_Character::AttackStart_Implementation(AActor* AttackTarget, int TokenNeeded)
 {
 	//校验是否有足够的Token可以供该AI使用攻击
@@ -226,7 +231,7 @@ void AXAI_Character::StoreAttackToken_Implementation(AActor* AttackTarget, int T
 	}
 }
 
-void AXAI_Character::CallOnDeath_Implementation()
+void AXAI_Character::CallOnDeath()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("AI On Death"));
 	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
@@ -252,12 +257,12 @@ void AXAI_Character::CallOnDeath_Implementation()
 }
 
 
-void AXAI_Character::CallOnBlocked_Implementation(bool bCanbeParried)
+void AXAI_Character::CallOnBlocked(bool bCanbeParried)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AI On Blocked"));
 }
 
-void AXAI_Character::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor)
+void AXAI_Character::CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor)
 {
 	MakeDamageActor = DamageCausor;
 	float value = AIStatesComponent->GetCurHealth();
@@ -279,7 +284,13 @@ void AXAI_Character::CallOnDamageResponse_Implementation(EDamageResponse DamageR
 
 void AXAI_Character::OnHitMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
-	AIController->SetStateAsAttacking(MakeDamageActor, false);
+	int DamageActorNum = 0;
+	if (MakeDamageActor && MakeDamageActor->Implements<UXDamageInterface>())
+	{
+		DamageActorNum = IXDamageInterface::Execute_GetTeamNumber(MakeDamageActor);
+	}
+	if (DamageActorNum != TeamNum) AIController->SetStateAsAttacking(MakeDamageActor, true);
+	else AIController->SetStateAsAttacking(nullptr, true);
 }
 
 void AXAI_Character::SetIsWiledWeapon(bool bSet)

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "D:/UnrealProject/Learn_UECpp/Learn_UECpp/ReClimb_Cpp/Source/ReClimb_Cpp/XHeadFile/XEnumType.h"
-#include "D:/runajian/epic_dw/ue4_27/UE_4.27/Engine/Source/Runtime/AIModule/Classes/Perception/AIPerceptionTypes.h"
 #include "XAIController.generated.h"
 
 /**
@@ -41,6 +40,9 @@ private:
 	//AttackTarget
 	UPROPERTY(BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 		AActor* AttackTargetActor;
+	//ControllerActor
+	UPROPERTY(VisibleAnywhere)
+		AActor* ControlledActor;
 
 	FName AttackTargetKeyName = TEXT("AttackTarget");
 	FName AIStateKeyName = TEXT("AIState");
@@ -78,7 +80,7 @@ public:
 
 
 	//Check Sense Result
-	bool CanSenseActor(AActor* Actor, EAISense type, FAIStimulus& Simulus);
+	bool CanSenseActor(AActor* Actor, EAISense type, struct FAIStimulus& Simulus);
 	//Get Current State
 	EAIState GetCurrentState();
 	void HandleSenseSound(const FVector& Location);
@@ -93,4 +95,6 @@ public:
 	virtual void ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 	//UFUNCTION()
 	//	void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+	bool CheckInSameTeam(AActor* OtherActor);
 };

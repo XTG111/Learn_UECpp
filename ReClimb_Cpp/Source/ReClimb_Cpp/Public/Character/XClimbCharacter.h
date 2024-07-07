@@ -36,6 +36,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* OnHitMontage;
 
+	//控制玩家的团队
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
+		int TeamNum = 1;
+
 private:
 	UPROPERTY(VisibleAnywhere)
 		class UCameraComponent* TP_Camera;
@@ -59,6 +63,8 @@ private:
 	//HUD
 	UPROPERTY()
 		class AXHUD* XCharacterHUD;
+
+
 
 	//玩家当前的状态
 	EPlayerStance Stance;
@@ -85,7 +91,7 @@ public:
 	inline EPlayerStance GetPlayerStance() { return Stance; }
 	inline void SetPlayerStance(EPlayerStance stance) { Stance = stance; }
 	inline bool GetInAttack() { return bInAttack; }
-	//Interface
+	// Damage Interface
 public:
 	float GetCurrentHealth_Implementation();
 	float GetMaxHealth_Implementation();
@@ -95,6 +101,7 @@ public:
 	bool IsAttacking_Implementation();
 	bool ReserveAttackToken_Implementation(int Amount);
 	void ReturnAttackToken_Implementation(int Amount);
+	int GetTeamNumber_Implementation();
 
 public:
 	/*

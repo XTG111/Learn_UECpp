@@ -38,11 +38,17 @@ public:
 
 	//Block Damage
 	void StartBlock();
+	//use for animation block
 	UFUNCTION()
 		void EndBlockMontage(UAnimMontage* Montage, bool bInterrupted);
+	//use for direct block
+	UFUNCTION()
+		void EndBlock();
 
-	virtual void CallOnBlocked_Implementation(bool bCanbeParried);
-	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor);
+
+	void CallOnBlocked(bool bCanbeParried);
+
+	void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);
 
 	/**     PlayMontage   **/
 	//Attack
@@ -61,6 +67,11 @@ public:
 	UFUNCTION()
 		void EndSheathMontage(UAnimMontage* Montage, bool bInterrupted);
 
+	//override take damage function not use the interface
+	bool TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor);
+	//try to block same attack
+	void TryToBlock();
+
 
 public:
 	//Control Block CoolDownTime
@@ -69,4 +80,8 @@ public:
 	UFUNCTION()
 		void SetbCanBlock();
 
+	//contorl block
+	UPROPERTY(EditAnywhere, Category = "BlockProbability")
+		float BlockProbability = 0.8f;
+	FTimerHandle BlockEndTimer;
 };

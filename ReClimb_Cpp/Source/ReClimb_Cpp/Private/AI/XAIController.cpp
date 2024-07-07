@@ -56,7 +56,7 @@ AXAIController::AXAIController()
 void AXAIController::BeginPlay()
 {
 	Super::BeginPlay();
-
+	ControlledActor = Cast<AActor>(GetPawn());
 	if (AIPerceptionComponent)
 	{
 		AIPerceptionComponent->Activate();
@@ -258,7 +258,7 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 	//将看到的Actor加入到数组中
 	UE_LOG(LogTemp, Warning, TEXT("SeeActor"));
 	AlreadySeeActors.AddUnique(Actor);
-	bool check = temp == Cast<ACharacter>(Actor);
+	bool check = !CheckInSameTeam(Actor);
 	EAIState curState = GetCurrentState();
 	switch (curState)
 	{
@@ -298,26 +298,30 @@ void AXAIController::HandleSenseSight(AActor* Actor)
 void AXAIController::HandleSenseDamage(AActor* Actor)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("HandleSenseDamage"));
-	EAIState curState = GetCurrentState();
-	switch (curState)
+	bool check = !CheckInSameTeam(Actor);
+	if (!check)
 	{
-	case EAIState::EASt_Passive:
-		SetStateAsAttacking(Actor, false);
-		break;
-	case EAIState::EASt_Attacking:
-		break;
-	case EAIState::EASt_Frozen:
-		break;
-	case EAIState::EASt_Investingating:
-		SetStateAsAttacking(Actor, false);
-		break;
-	case EAIState::EASt_Seeking:
-		SetStateAsAttacking(Actor, false);
-		break;
-	case EAIState::EASt_Dead:
-		break;
-	default:
-		break;
+		EAIState curState = GetCurrentState();
+		switch (curState)
+		{
+		case EAIState::EASt_Passive:
+			SetStateAsAttacking(Actor, false);
+			break;
+		case EAIState::EASt_Attacking:
+			break;
+		case EAIState::EASt_Frozen:
+			break;
+		case EAIState::EASt_Investingating:
+			SetStateAsAttacking(Actor, false);
+			break;
+		case EAIState::EASt_Seeking:
+			SetStateAsAttacking(Actor, false);
+			break;
+		case EAIState::EASt_Dead:
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -393,4 +397,21 @@ void AXAIController::ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActor
 			HandleSenseDamage(it);
 		}
 	}
+}
+
+bool AXAIController::CheckInSameTeam(AActor* OtherActor)
+{
+	int OtherActorTeam, SelfActorTeam;
+	if (OtherActor && OtherActor->Implements<UXDamageInterface>())
+	{
+		OtherActorTeam = IXDamageInterface::Execute_GetTeamNumber(OtherActor);
+	}
+
+	if (ControlledActor && ControlledActor->Implements<UXDamageInterface>())
+	{
+		SelfActorTeam = IXDamageInterface::Execute_GetTeamNumber(ControlledActor);
+	}
+
+	if (OtherActorTeam == SelfActorTeam) return true;
+	return false;
 }

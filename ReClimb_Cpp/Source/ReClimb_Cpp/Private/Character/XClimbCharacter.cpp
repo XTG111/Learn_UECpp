@@ -166,6 +166,11 @@ void AXClimbCharacter::ReturnAttackToken_Implementation(int Amount)
 	PlayerStatesComponent->ReturnAttackToken(Amount);
 }
 
+int AXClimbCharacter::GetTeamNumber_Implementation()
+{
+	return TeamNum;
+}
+
 void AXClimbCharacter::MoveForWard(float value)
 {
 	if (!bCanMove) return;

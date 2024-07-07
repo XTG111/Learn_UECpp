@@ -64,6 +64,8 @@ public:
 	void MagicSpell(FTransform& spawntransform, AActor* TargetActor, FDamageInfo damageinfo);
 	void FireBullet(FVector TraceStart, FVector TraceEnd, FDamageInfo damageinfo, AActor* IgnoreActor);
 	void SwordAttack(FVector TraceStart, FVector TraceEnd, FDamageInfo damageinfo, AActor* IgnoreActor);
+	TArray<AActor*> DamageAllNonTeamActor(TArray<FHitResult>& HitResults);
+	AActor* DamageFirstNonTeamActor(TArray<FHitResult>& HitResults);
 	//攻击信息
 	FDamageInfo DamageInfo;
 	//绑定击中函数

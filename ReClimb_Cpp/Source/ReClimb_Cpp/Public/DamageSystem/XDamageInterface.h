@@ -43,4 +43,7 @@ public:
 	//
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void ReturnAttackToken(int Amount);
+	//…Ë÷√EnemyµƒTeam Ù–‘
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		int GetTeamNumber();
 };

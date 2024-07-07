@@ -107,24 +107,25 @@ void UXCombatComponent::OnProjectileHit(AActor* OtherActor, const FHitResult& Hi
 void UXCombatComponent::FireBullet(FVector TraceStart, FVector TraceEnd, FDamageInfo damageinfo, AActor* IgnoreActor)
 {
 	ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
-	FHitResult HitRes;
-	bool bIsHit = UKismetSystemLibrary::LineTraceSingle(
+	TArray<FHitResult> HitResults;
+	bool bIsHit = UKismetSystemLibrary::LineTraceMulti(
 		GetWorld(),
 		TraceStart,
 		TraceEnd,
 		ETType,
 		false,
 		TArray<AActor*>{IgnoreActor},
-		EDrawDebugTrace::None,
-		HitRes,
+		EDrawDebugTrace::ForDuration,
+		HitResults,
 		true
 	);
+
 	if (bIsHit)
 	{
-		AActor* TargetActor = Cast<AActor>(HitRes.Actor);
-		if (TargetActor && TargetActor->Implements<UXDamageInterface>())
+		AActor* DamageActor = DamageFirstNonTeamActor(HitResults);
+		if (DamageActor && DamageActor->Implements<UXDamageInterface>())
 		{
-			IXDamageInterface::Execute_TakeDamage(TargetActor, damageinfo, GetOwner());
+			IXDamageInterface::Execute_TakeDamage(DamageActor, damageinfo, GetOwner());
 		}
 
 		FAIDamageEvent DamageEvent;
@@ -132,7 +133,7 @@ void UXCombatComponent::FireBullet(FVector TraceStart, FVector TraceEnd, FDamage
 		DamageEvent.Instigator = GetOwner();
 		DamageEvent.Amount = DamageInfo.Amount;
 		DamageEvent.Location = GetOwner()->GetActorLocation();
-		DamageEvent.DamagedActor = TargetActor;
+		DamageEvent.DamagedActor = DamageActor;
 
 		UAIPerceptionSystem::GetCurrent(GetWorld())->OnEvent(DamageEvent);
 	}
@@ -141,8 +142,8 @@ void UXCombatComponent::FireBullet(FVector TraceStart, FVector TraceEnd, FDamage
 void UXCombatComponent::SwordAttack(FVector TraceStart, FVector TraceEnd, FDamageInfo damageinfo, AActor* IgnoreActor)
 {
 	ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
-	FHitResult HitRes;
-	bool bIsHit = UKismetSystemLibrary::SphereTraceSingle(
+	TArray<FHitResult> HitResults;
+	bool bIsHit = UKismetSystemLibrary::SphereTraceMulti(
 		GetWorld(),
 		TraceStart,
 		TraceEnd,
@@ -150,27 +151,79 @@ void UXCombatComponent::SwordAttack(FVector TraceStart, FVector TraceEnd, FDamag
 		ETType,
 		false,
 		TArray<AActor*>{IgnoreActor},
-		EDrawDebugTrace::ForDuration,
-		HitRes,
+		EDrawDebugTrace::None,
+		HitResults,
 		true
 	);
+
 	if (bIsHit)
 	{
-		AActor* TargetActor = Cast<AActor>(HitRes.Actor);
-		if (TargetActor && TargetActor->Implements<UXDamageInterface>())
+		TArray<AActor*> DamageActors = DamageAllNonTeamActor(HitResults);
+		for (auto& DamageActor : DamageActors)
 		{
-			IXDamageInterface::Execute_TakeDamage(TargetActor, damageinfo, GetOwner());
+			if (DamageActor && DamageActor->Implements<UXDamageInterface>())
+			{
+				IXDamageInterface::Execute_TakeDamage(DamageActor, damageinfo, GetOwner());
+			}
+
+			FAIDamageEvent DamageEvent;
+
+			DamageEvent.Instigator = GetOwner();
+			DamageEvent.Amount = DamageInfo.Amount;
+			DamageEvent.Location = GetOwner()->GetActorLocation();
+			DamageEvent.DamagedActor = DamageActor;
+
+			UAIPerceptionSystem::GetCurrent(GetWorld())->OnEvent(DamageEvent);
 		}
-
-		FAIDamageEvent DamageEvent;
-
-		DamageEvent.Instigator = GetOwner();
-		DamageEvent.Amount = DamageInfo.Amount;
-		DamageEvent.Location = GetOwner()->GetActorLocation();
-		DamageEvent.DamagedActor = TargetActor;
-
-		UAIPerceptionSystem::GetCurrent(GetWorld())->OnEvent(DamageEvent);
 	}
+}
+
+TArray<AActor*> UXCombatComponent::DamageAllNonTeamActor(TArray<FHitResult>& HitResults)
+{
+	TArray<AActor*> Res;
+	int DamageActorNum = 0;
+	int SelfActorNum = 0;
+	for (auto& HitRes : HitResults)
+	{
+		AActor* DamageActor = Cast<AActor>(HitRes.Actor);
+		if (DamageActor && DamageActor->Implements<UXDamageInterface>())
+		{
+			DamageActorNum = IXDamageInterface::Execute_GetTeamNumber(DamageActor);
+		}
+		if (GetOwner() && GetOwner()->Implements<UXDamageInterface>())
+		{
+			SelfActorNum = IXDamageInterface::Execute_GetTeamNumber(GetOwner());
+		}
+		if (DamageActorNum != SelfActorNum)
+		{
+			Res.AddUnique(DamageActor);
+		}
+	}
+	return Res;
+}
+
+AActor* UXCombatComponent::DamageFirstNonTeamActor(TArray<FHitResult>& HitResults)
+{
+	int DamageActorNum = 0;
+	int SelfActorNum = 0;
+	for (auto& HitRes : HitResults)
+	{
+		AActor* DamageActor = Cast<AActor>(HitRes.Actor);
+		if (DamageActor && DamageActor->Implements<UXDamageInterface>())
+		{
+			DamageActorNum = IXDamageInterface::Execute_GetTeamNumber(DamageActor);
+		}
+		if (GetOwner() && GetOwner()->Implements<UXDamageInterface>())
+		{
+			SelfActorNum = IXDamageInterface::Execute_GetTeamNumber(GetOwner());
+		}
+		if (DamageActorNum != SelfActorNum)
+		{
+			return DamageActor;
+			break;
+		}
+	}
+	return nullptr;
 }
 
 

@@ -61,6 +61,8 @@ public:
 		TSubclassOf<UUserWidget> HPWidget;
 	UPROPERTY(VisibleAnywhere)
 		class UWidgetComponent* EnemyHPWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
+		int TeamNum = 2;
 
 	UPROPERTY()
 		AActor* MakeDamageActor;
@@ -96,6 +98,8 @@ public:
 	bool IsAttacking_Implementation();
 	bool ReserveAttackToken_Implementation(int Amount);
 	void ReturnAttackToken_Implementation(int Amount);
+	//…Ë÷√Õ≈∂”
+	int GetTeamNumber_Implementation();
 	bool AttackStart_Implementation(AActor* AttackTarget, int TokenNeeded);
 	void AttackEnd_Implementation(AActor* AttackTarget);
 	void StoreAttackToken_Implementation(AActor* AttackTarget, int TokenNeeded);
@@ -109,15 +113,16 @@ public:
 
 	//UFUNCTION Bind Delegate
 public:
-	UFUNCTION(BlueprintNativeEvent)
+	//BlueprintNativeEvent
+	UFUNCTION()
 		void CallOnDeath();
-	virtual void CallOnDeath_Implementation();
-	UFUNCTION(BlueprintNativeEvent)
+	//virtual void CallOnDeath_Implementation();
+	UFUNCTION()
 		void CallOnBlocked(bool bCanbeParried);
-	virtual void CallOnBlocked_Implementation(bool bCanbeParried);
-	UFUNCTION(BlueprintNativeEvent)
+	//virtual void CallOnBlocked_Implementation(bool bCanbeParried);
+	UFUNCTION()
 		void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);
-	virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor);
+	//virtual void CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor);
 	UFUNCTION()
 		void OnHitMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 

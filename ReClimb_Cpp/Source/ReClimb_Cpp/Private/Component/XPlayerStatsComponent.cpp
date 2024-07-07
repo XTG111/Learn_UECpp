@@ -75,7 +75,7 @@ bool UXPlayerStatsComponent::TakeDamage(FDamageInfo DamageInfo, AActor* DamageCa
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NO DAMAGED"));
+		//UE_LOG(LogTemp, Warning, TEXT("NO DAMAGED"));
 		return false;
 	}
 }

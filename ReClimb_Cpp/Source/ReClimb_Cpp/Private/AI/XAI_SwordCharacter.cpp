@@ -7,6 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "AI/XAIController.h"
 #include "Component/XCombatComponent.h"
 #include "Component/XPlayerStatsComponent.h"
@@ -56,11 +57,12 @@ void AXAI_SwordCharacter::StartBlock()
 {
 	AIStatesComponent->SetIsBlocking(true);
 	BlockStace = EBlockingStace::EBS_Blocking;
-	//当阻挡是立即停止移动
+	//当阻挡时立即停止移动
 	GetCharacterMovement()->StopMovementImmediately();
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	PlayAnimMontage(Block1Montage);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndBlockMontage);
+	AIStatesComponent->OnBlocked.Broadcast(true);
+	GetWorldTimerManager().ClearTimer(BlockEndTimer);
+	GetWorldTimerManager().SetTimer(BlockEndTimer, this, &AXAI_SwordCharacter::EndBlock, 2.0f);
+
 }
 
 void AXAI_SwordCharacter::EndBlockMontage(UAnimMontage* Montage, bool bInterrupted)
@@ -72,16 +74,26 @@ void AXAI_SwordCharacter::EndBlockMontage(UAnimMontage* Montage, bool bInterrupt
 	OnBlockEnded.Broadcast();
 }
 
-void AXAI_SwordCharacter::CallOnBlocked_Implementation(bool bCanbeParried)
+void AXAI_SwordCharacter::EndBlock()
+{
+	BlockStace = EBlockingStace::EBS_None;
+	AIStatesComponent->SetIsBlocking(false);
+	//if interuppted Attack
+	CallOnAttackEndCall.Broadcast();
+	OnBlockEnded.Broadcast();
+}
+
+void AXAI_SwordCharacter::CallOnBlocked(bool bCanbeParried)
 {
 	//Super::CallOnBlocked(bCanbeParried);
 	BlockStace = EBlockingStace::EBS_BlockSuccess;
+	GetWorldTimerManager().ClearTimer(BlockEndTimer);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
 	PlayAnimMontage(Block2Montage);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndBlockMontage);
 }
 
-void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse DamageResponse, AActor* DamageCausor)
+void AXAI_SwordCharacter::CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor)
 {
 	if (bCanBlock)
 	{
@@ -91,7 +103,8 @@ void AXAI_SwordCharacter::CallOnDamageResponse_Implementation(EDamageResponse Da
 	}
 	else
 	{
-		Super::CallOnDamageResponse_Implementation(DamageResponse, DamageCausor);
+		//UE_LOG(LogTemp, Warning, TEXT("SwordDamage"));
+		Super::CallOnDamageResponse(DamageResponse, DamageCausor);
 	}
 }
 
@@ -177,6 +190,24 @@ void AXAI_SwordCharacter::EndSheathMontage(UAnimMontage* Montage, bool bInterrup
 {
 	if (Weapon)	Weapon->Destroy();
 	CallOnUnEquipWeapon.Broadcast();
+}
+
+bool AXAI_SwordCharacter::TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor)
+{
+	if (DamageInfo.bCanBeBlocked)
+	{
+		TryToBlock();
+	}
+	return AIStatesComponent->TakeDamage(DamageInfo, DamageCausor);
+}
+
+void AXAI_SwordCharacter::TryToBlock()
+{
+	int temp = UKismetMathLibrary::RandomFloat();
+	if (temp >= BlockProbability)
+	{
+		StartBlock();
+	}
 }
 
 void AXAI_SwordCharacter::SetbCanBlock()
