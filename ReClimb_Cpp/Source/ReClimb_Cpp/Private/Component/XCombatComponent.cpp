@@ -10,6 +10,7 @@
 #include "Perception/AISense_Damage.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values for this component's properties
 UXCombatComponent::UXCombatComponent()

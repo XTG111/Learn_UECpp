@@ -71,7 +71,8 @@ public:
 	//存储AttackTarget和对其消耗的Token
 	TMap<AActor*, int> CostTokenForTarget;
 	//当前这次攻击需要消耗的Token
-	int CurAttackNeedToken;
+	UPROPERTY(EditAnywhere)
+		int CurAttackNeedToken;
 
 	inline bool GetIsWiledWeapon() { return bIsWiledWeapon; }
 

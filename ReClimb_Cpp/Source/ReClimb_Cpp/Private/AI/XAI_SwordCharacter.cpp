@@ -197,6 +197,7 @@ bool AXAI_SwordCharacter::TakeDamage_Implementation(FDamageInfo DamageInfo, AAct
 	if (DamageInfo.bCanBeBlocked)
 	{
 		TryToBlock();
+		return false;
 	}
 	return AIStatesComponent->TakeDamage(DamageInfo, DamageCausor);
 }

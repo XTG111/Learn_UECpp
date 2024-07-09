@@ -13,8 +13,9 @@ UCLASS()
 class RECLIMB_CPP_API UXAI_AnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-		//动画蓝图初始化重载
-		virtual void NativeInitializeAnimation() override;
+public:
+	//动画蓝图初始化重载
+	virtual void NativeInitializeAnimation() override;
 
 	//类似Event Tick函数
 	virtual void NativeUpdateAnimation(float DeltaTime) override;

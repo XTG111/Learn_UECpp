@@ -67,7 +67,7 @@ public:
 	UFUNCTION()
 		void EndSheathMontage(UAnimMontage* Montage, bool bInterrupted);
 
-	//override take damage function not use the interface
+	//override take damage function
 	bool TakeDamage_Implementation(FDamageInfo DamageInfo, AActor* DamageCausor);
 	//try to block same attack
 	void TryToBlock();
