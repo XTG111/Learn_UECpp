@@ -12,6 +12,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "AOE/XAOE_Heal.h"
+#include "Component/XPlayerStatsComponent.h"
 
 
 AXAI_MageCharacter::AXAI_MageCharacter()
@@ -154,5 +156,35 @@ void AXAI_MageCharacter::DestroyParticle()
 		TeleportTrailEffect->DestroyComponent();
 	}
 	GetWorldTimerManager().ClearTimer(ParticleDestroyTimer);
+}
+
+void AXAI_MageCharacter::HealOverTime()
+{
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_MageCharacter::HealEnd);
+	PlayAnimMontage(HealAnimation);
+	FTransform SpawnTrans = FTransform();
+	SpawnTrans.SetLocation(GetActorLocation());
+	HealAOEActor = GetWorld()->SpawnActor<AXAOE_Heal>(HealAOEClass, SpawnTrans);
+	HealAOEActor->SpawnInterval = 1.0f;
+	HealAOEActor->Duration = 10.0f;
+	HealAOEActor->Trigger();
+	HealAOEActor->OnAOEOverlapActor.AddDynamic(this, &AXAI_MageCharacter::HealActor);
+}
+
+void AXAI_MageCharacter::HealEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (HealAOEActor) HealAOEActor->Destroy();
+	HealAOEActor->OnAOEOverlapActor.Clear();
+	OnHealOverTimeEnd.Broadcast();
+}
+
+void AXAI_MageCharacter::HealActor(AActor* actor)
+{
+	if (actor == this && actor->Implements<UXDamageInterface>())
+	{
+		IXDamageInterface::Execute_Heal(actor, AIStatesComponent->GetMaxHealth() * 0.05f);
+	}
+
 }
 

@@ -11,7 +11,7 @@
  *
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTeleportEnd);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealOverTimeEnd);
 UCLASS()
 class RECLIMB_CPP_API AXAI_MageCharacter : public AXAI_Character
 {
@@ -31,6 +31,15 @@ public:
 	UFUNCTION()
 		void OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* HealAnimation;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AXAOEBase> HealAOEClass;
+
+	UPROPERTY()
+		class AXAOE_Heal* HealAOEActor;
+
 	//Teleport
 	bool bInTeleport = false;
 	void Teleport(FVector& TargetLoc);
@@ -48,8 +57,16 @@ public:
 		UParticleSystemComponent* TeleportTrailEffect;
 
 	FOnTeleportEnd OnTeleportEnd;
+	FOnHealOverTimeEnd OnHealOverTimeEnd;
 	//Delay Destroy
 	FTimerHandle ParticleDestroyTimer;
 	UFUNCTION()
 		void DestroyParticle();
+
+	//Heal
+	void HealOverTime();
+	UFUNCTION()
+		void HealEnd(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+		void HealActor(AActor* actor);
 };
