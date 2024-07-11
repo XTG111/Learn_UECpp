@@ -95,3 +95,12 @@ enum class EBlockingStace : uint8
 	EBS_Blocking UMETA(DisplayName = "Blocking"),
 	EBS_BlockSuccess UMETA(DisplayName = "BlockSuccess")
 };
+
+//SwordAttackType
+UENUM(BlueprintType)
+enum class ESwordAttackType : uint8
+{
+	ESAT_Default UMETA(DisplayName = "Default"),
+	ESAT_ShortAttack UMETA(DisplayName = "ShortAttack"),
+	ESAT_JumpAttack UMETA(DisplayName = "JumpAttack")
+};

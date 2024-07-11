@@ -3,7 +3,7 @@
 
 #include "AITask/XBTTask_SwordAttack.h"
 #include "AI/XAIController.h"
-#include "AI/XAI_Character.h"
+#include "AI/XAI_SwordCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 EBTNodeResult::Type UXBTTask_SwordAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -15,7 +15,7 @@ EBTNodeResult::Type UXBTTask_SwordAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	if (AICon)
 	{
-		ControlledPawn = Cast<AXAI_Character>(AICon->GetPawn());
+		ControlledPawn = Cast<AXAI_SwordCharacter>(AICon->GetPawn());
 		AttackActor = Cast<AActor>(AICon->GetBlackboardComponent()->GetValueAsObject(AttackTargetKey.SelectedKeyName));
 		float Radius = AICon->GetBlackboardComponent()->GetValueAsFloat(AttackRadiusKey.SelectedKeyName);
 
@@ -57,13 +57,31 @@ void UXBTTask_SwordAttack::MoveEndCall(FAIRequestID RequestID, EPathFollowingRes
 	else
 	{
 		AICon->SetFocus(AttackActor, EAIFocusPriority::LastFocusPriority);
-		if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+		switch (AttackType)
 		{
+		case ESwordAttackType::ESAT_Default:
+			if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+			{
 
+				ControlledPawn->CallOnAttackEndCall.Clear();
+				ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_SwordAttack::FinishAttack);
+				IXAIInterface::Execute_Attack(ControlledPawn, AttackActor);
+			}
+			break;
+		case ESwordAttackType::ESAT_ShortAttack:
 			ControlledPawn->CallOnAttackEndCall.Clear();
 			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_SwordAttack::FinishAttack);
-			IXAIInterface::Execute_Attack(ControlledPawn, AttackActor);
+			ControlledPawn->ShortAttack(AttackActor);
+			break;
+		case ESwordAttackType::ESAT_JumpAttack:
+			ControlledPawn->CallOnAttackEndCall.Clear();
+			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_SwordAttack::FinishAttack);
+			ControlledPawn->JumpAttack(AttackActor);
+			break;
+		default:
+			break;
 		}
+
 	}
 }
 

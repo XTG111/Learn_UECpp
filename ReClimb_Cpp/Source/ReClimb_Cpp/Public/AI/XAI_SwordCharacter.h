@@ -30,11 +30,13 @@ public:
 	//Block Stace
 	EBlockingStace BlockStace = EBlockingStace::EBS_None;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		class UAnimMontage* Block1Montage;
 	//Block Success Play
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		class UAnimMontage* Block2Montage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* JumpAttackMontage;
 
 	//Block Damage
 	void StartBlock();
@@ -84,4 +86,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "BlockProbability")
 		float BlockProbability = 0.8f;
 	FTimerHandle BlockEndTimer;
+
+	//增加攻击种类
+	void ShortAttack(AActor* AttakTarget);
+	void CauseDamage();
+	void JumpAttack(AActor* AttakTarget);
+	//将AIEnemy 移动到玩家位置
+	void JumpToAttackTarget(AActor* AttakTarget);
+	//跳跃攻击结束后，落地广播
+	UFUNCTION()
+		void OnLand(const FHitResult& Hit);
+	//预测玩家位置
+	FVector PredicPlayerLoc(AActor* player, float pretime = 1.0f);
 };

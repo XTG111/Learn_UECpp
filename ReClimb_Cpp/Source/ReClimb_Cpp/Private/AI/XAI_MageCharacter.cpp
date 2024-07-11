@@ -175,7 +175,6 @@ void AXAI_MageCharacter::HealOverTime()
 void AXAI_MageCharacter::HealEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (HealAOEActor) HealAOEActor->Destroy();
-	HealAOEActor->OnAOEOverlapActor.Clear();
 	OnHealOverTimeEnd.Broadcast();
 }
 

@@ -14,6 +14,7 @@
 #include "Components/WidgetComponent.h"
 #include "Widget/XWidget_EnemyHeadHP.h"
 #include "Components/ProgressBar.h"
+#include "Kismet/GameplayStatics.h"
 
 void AXAI_SwordCharacter::BeginPlay()
 {
@@ -36,21 +37,14 @@ void AXAI_SwordCharacter::UnEquipWeapon_Implementation()
 
 void AXAI_SwordCharacter::Attack_Implementation(AActor* AttakTarget)
 {
-	Super::Attack_Implementation(AttakTarget);
-	UE_LOG(LogTemp, Warning, TEXT("Attack"));
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
-	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_SwordCharacter::OnNotifyMontage);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndAttackMontage);
-	PlayAnimMontage(AttackMontage);
-
-	AIStatesComponent->SetbIsInterruptible(false);
+	//UE_LOG(LogTemp, Warning, TEXT("Attack"));
+	ShortAttack(AttakTarget);
 }
 
 void AXAI_SwordCharacter::GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius)
 {
-	AttackRadius = 300.0f;
-	DefendRadius = 300.0f;
+	AttackRadius = 200.0f;
+	DefendRadius = 1200.0f;
 }
 
 void AXAI_SwordCharacter::StartBlock()
@@ -119,27 +113,12 @@ void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPoin
 {
 	if (NotifyName == FName(TEXT("Fire")))
 	{
-		FVector Start = GetActorLocation();
-
-		AXAIController* AIC = Cast<AXAIController>(GetController());
-
-		FDamageInfo DamageInfo;
-		DamageInfo.Amount = 25.0f;
-		DamageInfo.DamageType = EDamageType::EDT_Melee;
-		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
-
-		if (AIC)
-		{
-			if (AttackTargetActor && AttackTargetActor->Implements<UXDamageInterface>())
-			{
-				if (!IXDamageInterface::Execute_IsDead(AttackTargetActor))
-				{
-					FVector End = Start + GetActorForwardVector() * 300.0f;
-					CombatComponent->SwordAttack(Start, End, DamageInfo, this);
-				}
-				else AIC->SetStateAsPassive();
-			}
-		}
+		CauseDamage();
+	}
+	if (NotifyName == FName(TEXT("Jump")))
+	{
+		//Move Capulse to Play Animation
+		JumpToAttackTarget(AttackTargetActor);
 	}
 }
 
@@ -215,4 +194,87 @@ void AXAI_SwordCharacter::SetbCanBlock()
 {
 	bCanBlock = true;
 	GetWorldTimerManager().ClearTimer(CoolDownBlock);
+}
+
+void AXAI_SwordCharacter::ShortAttack(AActor* AttakTarget)
+{
+	Super::Attack_Implementation(AttakTarget);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_SwordCharacter::OnNotifyMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndAttackMontage);
+	PlayAnimMontage(AttackMontage);
+
+	AIStatesComponent->SetbIsInterruptible(false);
+}
+
+void AXAI_SwordCharacter::CauseDamage()
+{
+	FVector Start = GetActorLocation();
+
+	AXAIController* AIC = Cast<AXAIController>(GetController());
+
+	FDamageInfo DamageInfo;
+	DamageInfo.Amount = 25.0f;
+	DamageInfo.DamageType = EDamageType::EDT_Melee;
+	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+
+	if (AIC)
+	{
+		if (AttackTargetActor && AttackTargetActor->Implements<UXDamageInterface>())
+		{
+			if (!IXDamageInterface::Execute_IsDead(AttackTargetActor))
+			{
+				FVector End = Start + GetActorForwardVector() * 300.0f;
+				CombatComponent->SwordAttack(Start, End, DamageInfo, this);
+			}
+			else AIC->SetStateAsPassive();
+		}
+	}
+}
+
+void AXAI_SwordCharacter::JumpAttack(AActor* AttakTarget)
+{
+	Super::Attack_Implementation(AttakTarget);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_SwordCharacter::OnNotifyMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndAttackMontage);
+	PlayAnimMontage(JumpAttackMontage);
+
+	AIStatesComponent->SetbIsInterruptible(false);
+}
+
+void AXAI_SwordCharacter::JumpToAttackTarget(AActor* AttakTarget)
+{
+	FVector LaunchVelocity;
+	FVector Location = PredicPlayerLoc(AttakTarget);
+	FVector EndLoc = FVector{ Location.X,Location.Y,Location.Z };
+	UGameplayStatics::SuggestProjectileVelocity_CustomArc(
+		GetWorld(),
+		LaunchVelocity,
+		GetActorLocation(),
+		EndLoc,
+		0.0f,
+		0.5f
+	);
+	LandedDelegate.Clear();
+	LaunchCharacter(LaunchVelocity, true, true);
+	LandedDelegate.AddDynamic(this, &AXAI_SwordCharacter::OnLand);
+}
+
+void AXAI_SwordCharacter::OnLand(const FHitResult& Hit)
+{
+	//落地时立即停止运动，这样可以播放本身的落地动画
+	LandedDelegate.Clear();
+	GetCharacterMovement()->StopMovementImmediately();
+}
+
+FVector AXAI_SwordCharacter::PredicPlayerLoc(AActor* player, float pretime)
+{
+	//获取pretime后player的位置
+	FVector res = player->GetVelocity() * FVector { 1.0f, 1.0f, 0.0f };//clear z
+	res *= pretime;
+	res += player->GetActorLocation();
+	return res;
 }

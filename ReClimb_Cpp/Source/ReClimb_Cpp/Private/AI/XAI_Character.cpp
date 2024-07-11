@@ -122,7 +122,7 @@ void AXAI_Character::Attack_Implementation(AActor* AttakTarget)
 
 void AXAI_Character::JumpToLoc_Implementation(FVector Location)
 {
-	UE_LOG(LogTemp, Warning, TEXT("JumpToLoc"));
+	//UE_LOG(LogTemp, Warning, TEXT("JumpToLoc"));
 	FVector LaunchVelocity;
 	FVector EndLoc = FVector{ Location.X,Location.Y,Location.Z + 250.f };
 	UGameplayStatics::SuggestProjectileVelocity_CustomArc(

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlueprintBase.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "D:\UnrealProject\Learn_UECpp\Learn_UECpp\ReClimb_Cpp\Source\ReClimb_Cpp\XHeadFile\XEnumType.h"
 #include "XBTTask_SwordAttack.generated.h"
 
 /**
@@ -24,11 +25,13 @@ public:
 		FBlackboardKeySelector AttackRadiusKey;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int TokenNeeded;
+	UPROPERTY(EditAnywhere)
+		ESwordAttackType AttackType;
 
 	UPROPERTY()
 		AActor* AttackActor;
 	UPROPERTY()
-		class AXAI_Character* ControlledPawn;
+		class AXAI_SwordCharacter* ControlledPawn;
 	UPROPERTY()
 		class AXAIController* AICon;
 
