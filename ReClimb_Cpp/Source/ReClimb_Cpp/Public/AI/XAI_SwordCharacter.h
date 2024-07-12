@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "AI/XAI_Character.h"
+#include "Components/TimelineComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "XAI_SwordCharacter.generated.h"
 
 /**
@@ -37,6 +39,13 @@ public:
 		class UAnimMontage* Block2Montage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		class UAnimMontage* JumpAttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* SpinAttackMontage;
+
+	UPROPERTY(EditAnywhere, Category = "SpinAttack")
+		TSubclassOf<class AXAOEBase> SpinAOEClass;
+	UPROPERTY()
+		AXAOEBase* SpinAOEActor;
 
 	//Block Damage
 	void StartBlock();
@@ -90,6 +99,8 @@ public:
 	//增加攻击种类
 	void ShortAttack(AActor* AttakTarget);
 	void CauseDamage();
+
+	//jumpattack
 	void JumpAttack(AActor* AttakTarget);
 	//将AIEnemy 移动到玩家位置
 	void JumpToAttackTarget(AActor* AttakTarget);
@@ -98,4 +109,36 @@ public:
 		void OnLand(const FHitResult& Hit);
 	//预测玩家位置
 	FVector PredicPlayerLoc(AActor* player, float pretime = 1.0f);
+
+	//spinattack
+	void SpinAttack(AActor* AttakTarget);
+	void SpinMesh();
+	FRotator LastRelRotation;
+	//timeline spin
+	UPROPERTY()
+		UTimelineComponent* SpinTimeline;
+	UPROPERTY(EditAnywhere)
+		UCurveFloat* SpinFloatCurve;
+	//曲线更新事件
+	FOnTimelineFloat OnSpinTimelineTickCallBack;
+	//完成事件
+	FOnTimelineEvent OnSpinTimelineFinishedCallBack;
+	UFUNCTION()
+		void SpinTimelineTickCall(float value);
+	UFUNCTION()
+		void SpinTimelineFinishedCall();
+
+	//Spin Chase
+	UFUNCTION()
+		void ChaseAttackTarget();
+	//move to attack target
+	UFUNCTION()
+		void MoveEndCall(FAIRequestID RequestID, EPathFollowingResult::Type Result);
+	//Delay Loop
+	FTimerHandle ChaseLoopTimer;
+
+	//SpinAttack TakeDamage
+	void SpinAOE();
+	UFUNCTION()
+		void AOEDamageForOverlapActor(AActor* actor);
 };

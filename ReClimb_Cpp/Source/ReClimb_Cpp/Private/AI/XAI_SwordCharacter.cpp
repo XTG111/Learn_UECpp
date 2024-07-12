@@ -15,6 +15,7 @@
 #include "Widget/XWidget_EnemyHeadHP.h"
 #include "Components/ProgressBar.h"
 #include "Kismet/GameplayStatics.h"
+#include "AOE/XAOEBase.h"
 
 void AXAI_SwordCharacter::BeginPlay()
 {
@@ -23,6 +24,17 @@ void AXAI_SwordCharacter::BeginPlay()
 	AIStatesComponent->OnDamageResponse.Clear();
 	AIStatesComponent->OnBlocked.AddDynamic(this, &AXAI_SwordCharacter::CallOnBlocked);
 	AIStatesComponent->OnDamageResponse.AddDynamic(this, &AXAI_SwordCharacter::CallOnDamageResponse);
+
+	//spin timeline
+	SpinTimeline = NewObject<UTimelineComponent>(this, FName(TEXT("SpinTimeLine")));
+	OnSpinTimelineTickCallBack.BindDynamic(this, &AXAI_SwordCharacter::SpinTimelineTickCall);
+	SpinTimeline->AddInterpFloat(SpinFloatCurve, OnSpinTimelineTickCallBack);
+	OnSpinTimelineFinishedCallBack.BindDynamic(this, &AXAI_SwordCharacter::SpinTimelineFinishedCall);
+	SpinTimeline->SetTimelineFinishedFunc(OnSpinTimelineFinishedCallBack);
+	SpinTimeline->RegisterComponent();
+
+	//initial
+	LastRelRotation = GetMesh()->GetRelativeRotation();
 }
 
 void AXAI_SwordCharacter::EquipWeapon_Implementation()
@@ -44,7 +56,7 @@ void AXAI_SwordCharacter::Attack_Implementation(AActor* AttakTarget)
 void AXAI_SwordCharacter::GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius)
 {
 	AttackRadius = 200.0f;
-	DefendRadius = 1200.0f;
+	DefendRadius = 400.0f;
 }
 
 void AXAI_SwordCharacter::StartBlock()
@@ -104,9 +116,12 @@ void AXAI_SwordCharacter::CallOnDamageResponse(EDamageResponse DamageResponse, A
 
 void AXAI_SwordCharacter::EndAttackMontage(UAnimMontage* Montage, bool bInterrupted)
 {
-	UE_LOG(LogTemp, Warning, TEXT("EndAttack"));
+	//UE_LOG(LogTemp, Warning, TEXT("EndAttack"));
 	IXAIInterface::Execute_AttackEnd(this, AttackTargetActor);
 	AIStatesComponent->SetbIsInterruptible(true);
+	//当被打断或则完成停止旋转，并恢复网格朝向
+	SpinTimeline->Stop();
+	GetMesh()->SetRelativeRotation(LastRelRotation);
 }
 
 void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -119,6 +134,15 @@ void AXAI_SwordCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPoin
 	{
 		//Move Capulse to Play Animation
 		JumpToAttackTarget(AttackTargetActor);
+	}
+	if (NotifyName == FName(TEXT("Spin")))
+	{
+		SpinMesh();
+		ChaseAttackTarget();
+	}
+	if (NotifyName == FName(TEXT("SpinAOE")))
+	{
+		SpinAOE();
 	}
 }
 
@@ -278,3 +302,79 @@ FVector AXAI_SwordCharacter::PredicPlayerLoc(AActor* player, float pretime)
 	res += player->GetActorLocation();
 	return res;
 }
+
+void AXAI_SwordCharacter::SpinAttack(AActor* AttakTarget)
+{
+	Super::Attack_Implementation(AttakTarget);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_SwordCharacter::OnNotifyMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_SwordCharacter::EndAttackMontage);
+	PlayAnimMontage(SpinAttackMontage);
+
+	AIStatesComponent->SetbIsInterruptible(false);
+}
+
+void AXAI_SwordCharacter::SpinMesh()
+{
+	LastRelRotation = GetMesh()->GetRelativeRotation();
+	SpinTimeline->Play();
+}
+
+void AXAI_SwordCharacter::SpinTimelineTickCall(float value)
+{
+	FRotator NewRot = FRotator{
+		LastRelRotation.Roll,
+		UKismetMathLibrary::Lerp(LastRelRotation.Yaw, LastRelRotation.Yaw + 360.0f * 12.0f, value),
+		LastRelRotation.Pitch
+		//UKismetMathLibrary::Lerp(LastRelRotation.Yaw, 0.0f, value)//
+	};
+	//GetMesh()->SetRelativeRotation(NewRot);
+	GetMesh()->SetRelativeRotation(NewRot);
+}
+
+void AXAI_SwordCharacter::SpinTimelineFinishedCall()
+{
+	GetWorldTimerManager().ClearTimer(ChaseLoopTimer);
+}
+
+void AXAI_SwordCharacter::ChaseAttackTarget()
+{
+	AIController->ReceiveMoveCompleted.Clear();
+	AIController->ReceiveMoveCompleted.AddDynamic(this, &AXAI_SwordCharacter::MoveEndCall);
+	AIController->MoveToActor(AttackTargetActor, 200.0f, false);
+}
+
+void AXAI_SwordCharacter::MoveEndCall(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{
+	if (Result == EPathFollowingResult::Success)
+	{
+		if (bAttacking)
+		{
+			GetWorldTimerManager().SetTimer(ChaseLoopTimer, this, &AXAI_SwordCharacter::ChaseAttackTarget, 0.1f);
+		}
+	}
+}
+
+void AXAI_SwordCharacter::SpinAOE()
+{
+	FTransform SpawnTrans = FTransform();
+	SpawnTrans.SetLocation(GetActorLocation());
+	SpinAOEActor = GetWorld()->SpawnActor<AXAOEBase>(SpinAOEClass, SpawnTrans);
+	SpinAOEActor->SphereRadius = 450.0f;
+	SpinAOEActor->OnAOEOverlapActor.AddDynamic(this, &AXAI_SwordCharacter::AOEDamageForOverlapActor);
+	SpinAOEActor->Trigger();
+}
+
+void AXAI_SwordCharacter::AOEDamageForOverlapActor(AActor* actor)
+{
+	if (actor == AttackTargetActor && actor->Implements<UXDamageInterface>())
+	{
+		FDamageInfo DamageInfo;
+		DamageInfo.Amount = 5.0f;
+		DamageInfo.DamageType = EDamageType::EDT_Melee;
+		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+		IXDamageInterface::Execute_TakeDamage(actor, DamageInfo, this);
+	}
+}
+

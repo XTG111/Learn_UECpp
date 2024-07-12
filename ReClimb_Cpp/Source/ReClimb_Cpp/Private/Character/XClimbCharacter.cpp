@@ -399,7 +399,7 @@ void AXClimbCharacter::CallOnDamageResponse(EDamageResponse DamageResponse, AAct
 		Widget->HealthBar->SetPercent(value / MaxHealth);
 	}
 	PlayAnimMontage(OnHitMontage);
-	UE_LOG(LogTemp, Warning, TEXT("Character On DamageResponse"));
+	//UE_LOG(LogTemp, Warning, TEXT("Character On DamageResponse"));
 }
 
 void AXClimbCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

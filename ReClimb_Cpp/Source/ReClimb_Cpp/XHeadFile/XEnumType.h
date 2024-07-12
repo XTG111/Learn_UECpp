@@ -102,5 +102,6 @@ enum class ESwordAttackType : uint8
 {
 	ESAT_Default UMETA(DisplayName = "Default"),
 	ESAT_ShortAttack UMETA(DisplayName = "ShortAttack"),
-	ESAT_JumpAttack UMETA(DisplayName = "JumpAttack")
+	ESAT_JumpAttack UMETA(DisplayName = "JumpAttack"),
+	ESAT_SpinAttack UMETA(DisplayName = "SpinAttack")
 };
