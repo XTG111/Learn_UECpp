@@ -99,6 +99,7 @@ public:
 	bool IsAttacking_Implementation();
 	bool ReserveAttackToken_Implementation(int Amount);
 	void ReturnAttackToken_Implementation(int Amount);
+	void SetIsInteruptible_Implementation(bool binter);
 	//…Ë÷√Õ≈∂”
 	int GetTeamNumber_Implementation();
 	bool AttackStart_Implementation(AActor* AttackTarget, int TokenNeeded);

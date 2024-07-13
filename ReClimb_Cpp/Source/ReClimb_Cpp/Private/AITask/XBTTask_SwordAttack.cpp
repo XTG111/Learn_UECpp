@@ -82,6 +82,12 @@ void UXBTTask_SwordAttack::MoveEndCall(FAIRequestID RequestID, EPathFollowingRes
 			ControlledPawn->CallOnAttackEndCall.Clear();
 			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_SwordAttack::FinishAttack);
 			ControlledPawn->SpinAttack(AttackActor);
+			break;
+		case ESwordAttackType::ESAT_GroundSmashAttack:
+			ControlledPawn->CallOnAttackEndCall.Clear();
+			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_SwordAttack::FinishAttack);
+			ControlledPawn->SmashAttack(AttackActor);
+			break;
 		default:
 			break;
 		}

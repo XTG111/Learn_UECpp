@@ -37,6 +37,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		bool IsAttacking();
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void SetIsInteruptible(bool binter);
+
 	//Multi-AI Attack
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		bool ReserveAttackToken(int Amount);

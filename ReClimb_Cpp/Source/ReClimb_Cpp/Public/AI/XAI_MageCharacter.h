@@ -24,15 +24,20 @@ public:
 	// Called every frame
 	float SetMovementSpeed_Implementation(EAIMovement SpeedEnum) override;
 	void GetIdealRange_Implementation(float& AttackRadius, float& DefendRadius) override;
-	void Attack_Implementation(AActor* AttakTarget);
-
-	UFUNCTION()
-		void OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
-	UFUNCTION()
-		void OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted);
+	//void Attack_Implementation(AActor* AttakTarget);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* HealAnimation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* NormalAttackAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* SmashMontage;
+
+	UPROPERTY(EditAnywhere, Category = "AttackProj")
+		TSubclassOf<class AXProjectilesBase> AttackProjectileEx;
+	UPROPERTY(EditAnywhere, Category = "AttackProj")
+		TSubclassOf<class AXProjectilesBase> NormalProjectileEx;
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class AXAOEBase> HealAOEClass;
@@ -56,6 +61,7 @@ public:
 	UPROPERTY()
 		UParticleSystemComponent* TeleportTrailEffect;
 
+
 	FOnTeleportEnd OnTeleportEnd;
 	FOnHealOverTimeEnd OnHealOverTimeEnd;
 	//Delay Destroy
@@ -69,4 +75,11 @@ public:
 		void HealEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 		void HealActor(AActor* actor);
+
+	//Attack Type
+	void BaseAttack(AActor* AttakTarget);
+	void BarrageAttack(AActor* AttakTarget);
+
+	//Smash Attack
+	void SmashAttack(AActor* AttakTarget);
 };

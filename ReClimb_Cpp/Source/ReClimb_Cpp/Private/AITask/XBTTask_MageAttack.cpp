@@ -24,9 +24,16 @@ EBTNodeResult::Type UXBTTask_MageAttack::ExecuteTask(UBehaviorTreeComponent& Own
 			{
 				AICon->SetFocus(AttackActor, EAIFocusPriority::LastFocusPriority);
 				ControlledPawn = Cast<AXAI_MageCharacter>(AICon->GetPawn());
-				FVector Loc = AICon->GetBlackboardComponent()->GetValueAsVector(TeleportLocation.SelectedKeyName);
-				ControlledPawn->OnTeleportEnd.AddDynamic(this, &UXBTTask_MageAttack::TeleportEnd);
-				ControlledPawn->Teleport(Loc);
+				if (bShouldTeleport)
+				{
+					FVector Loc = AICon->GetBlackboardComponent()->GetValueAsVector(TeleportLocation.SelectedKeyName);
+					ControlledPawn->OnTeleportEnd.AddDynamic(this, &UXBTTask_MageAttack::TeleportEnd);
+					ControlledPawn->Teleport(Loc);
+				}
+				else
+				{
+					TeleportEnd();
+				}
 			}
 			else
 			{
@@ -40,11 +47,33 @@ EBTNodeResult::Type UXBTTask_MageAttack::ExecuteTask(UBehaviorTreeComponent& Own
 void UXBTTask_MageAttack::TeleportEnd()
 {
 	ControlledPawn->OnTeleportEnd.Clear();
-	if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+	switch (AttackType)
 	{
+	case EMageAttackType::ESAT_Default:
+		if (ControlledPawn && ControlledPawn->Implements<UXAIInterface>())
+		{
+			ControlledPawn->CallOnAttackEndCall.Clear();
+			ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_MageAttack::FinishAttack);
+			IXAIInterface::Execute_Attack(ControlledPawn, AttackActor);
+		}
+		break;
+	case EMageAttackType::ESAT_BaseAttack:
 		ControlledPawn->CallOnAttackEndCall.Clear();
 		ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_MageAttack::FinishAttack);
-		IXAIInterface::Execute_Attack(ControlledPawn, AttackActor);
+		ControlledPawn->BaseAttack(AttackActor);
+		break;
+	case EMageAttackType::ESAT_BarrageAttack:
+		ControlledPawn->CallOnAttackEndCall.Clear();
+		ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_MageAttack::FinishAttack);
+		ControlledPawn->BarrageAttack(AttackActor);
+		break;
+	case EMageAttackType::ESAT_GroundSmashAttack:
+		ControlledPawn->CallOnAttackEndCall.Clear();
+		ControlledPawn->CallOnAttackEndCall.AddDynamic(this, &UXBTTask_MageAttack::FinishAttack);
+		ControlledPawn->SmashAttack(AttackActor);
+		break;
+	default:
+		break;
 	}
 }
 

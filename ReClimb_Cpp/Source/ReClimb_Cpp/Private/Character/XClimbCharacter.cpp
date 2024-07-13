@@ -21,6 +21,7 @@
 #include "Widget/XWidget_CharacterOverShow.h"
 #include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
+#include "Projectiles/XProjectilesBase.h"
 
 // Sets default values
 AXClimbCharacter::AXClimbCharacter()
@@ -154,6 +155,11 @@ bool AXClimbCharacter::IsDead_Implementation()
 bool AXClimbCharacter::IsAttacking_Implementation()
 {
 	return bAttacking;
+}
+
+void AXClimbCharacter::SetIsInteruptible_Implementation(bool binter)
+{
+	PlayerStatesComponent->SetbIsInterruptible(binter);
 }
 
 bool AXClimbCharacter::ReserveAttackToken_Implementation(int Amount)
@@ -437,8 +443,7 @@ void AXClimbCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNo
 			TargetLoc
 		);
 		trans.SetRotation(Rot.Quaternion());
-
-		CombatComponent->MagicSpell(trans, nullptr, DamageInfo);
+		CombatComponent->MagicSpell(trans, nullptr, DamageInfo, ProjectileEx);
 	}
 }
 

@@ -103,6 +103,20 @@ public:
 		bool bShouldForceInterrupt;
 };
 
+//AttackStruct To Rebulid Attack System
+USTRUCT(BlueprintType)
+struct FAttackInfo : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		AActor* AttackTarget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		class UAnimMontage* AttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		FDamageInfo DamageInfo;
+};
+
 /**
  *
  */

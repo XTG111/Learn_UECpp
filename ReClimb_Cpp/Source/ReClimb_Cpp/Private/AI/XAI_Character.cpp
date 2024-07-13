@@ -184,6 +184,11 @@ void AXAI_Character::ReturnAttackToken_Implementation(int Amount)
 	AIStatesComponent->ReturnAttackToken(Amount);
 }
 
+void AXAI_Character::SetIsInteruptible_Implementation(bool binter)
+{
+	AIStatesComponent->SetbIsInterruptible(binter);
+}
+
 int AXAI_Character::GetTeamNumber_Implementation()
 {
 	return TeamNum;

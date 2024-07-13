@@ -57,6 +57,8 @@ private:
 	//战斗组件
 	UPROPERTY(VisibleAnywhere)
 		class UXCombatComponent* CombatComponent;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AXProjectilesBase> ProjectileEx;
 	//玩家控制器
 	UPROPERTY()
 		class APlayerController* PIC;
@@ -99,6 +101,7 @@ public:
 	float Heal_Implementation(float Amount);
 	bool IsDead_Implementation();
 	bool IsAttacking_Implementation();
+	void SetIsInteruptible_Implementation(bool binter);
 	bool ReserveAttackToken_Implementation(int Amount);
 	void ReturnAttackToken_Implementation(int Amount);
 	int GetTeamNumber_Implementation();

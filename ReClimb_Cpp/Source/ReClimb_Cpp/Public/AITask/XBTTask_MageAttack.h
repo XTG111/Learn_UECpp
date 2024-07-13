@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlueprintBase.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "D:\UnrealProject\Learn_UECpp\Learn_UECpp\ReClimb_Cpp\Source\ReClimb_Cpp\XHeadFile\XEnumType.h"
 #include "XBTTask_MageAttack.generated.h"
 
 /**
@@ -23,6 +24,8 @@ public:
 		FBlackboardKeySelector TeleportLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int TokenNeeded;
+	UPROPERTY(EditAnywhere)
+		EMageAttackType AttackType;
 
 	UPROPERTY()
 		AActor* AttackActor;
@@ -30,6 +33,8 @@ public:
 		class AXAI_MageCharacter* ControlledPawn;
 	UPROPERTY()
 		class AXAIController* AICon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bShouldTeleport = true;
 
 	FSimpleDelegate FinishSuccessDelegate;
 

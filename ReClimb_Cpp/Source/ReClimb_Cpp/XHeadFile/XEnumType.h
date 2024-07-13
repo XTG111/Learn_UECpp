@@ -103,5 +103,16 @@ enum class ESwordAttackType : uint8
 	ESAT_Default UMETA(DisplayName = "Default"),
 	ESAT_ShortAttack UMETA(DisplayName = "ShortAttack"),
 	ESAT_JumpAttack UMETA(DisplayName = "JumpAttack"),
-	ESAT_SpinAttack UMETA(DisplayName = "SpinAttack")
+	ESAT_SpinAttack UMETA(DisplayName = "SpinAttack"),
+	ESAT_GroundSmashAttack UMETA(DisplayName = "GroundSmashAttack")
+};
+
+//MageAttackType
+UENUM(BlueprintType)
+enum class EMageAttackType : uint8
+{
+	ESAT_Default UMETA(DisplayName = "Default"),
+	ESAT_BaseAttack UMETA(DisplayName = "BaseAttack"),
+	ESAT_BarrageAttack UMETA(DisplayName = "BarrageAttack"),
+	ESAT_GroundSmashAttack UMETA(DisplayName = "GroundSmashAttack")
 };

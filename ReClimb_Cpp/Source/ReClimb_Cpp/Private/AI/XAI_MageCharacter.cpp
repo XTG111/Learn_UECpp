@@ -14,6 +14,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "AOE/XAOE_Heal.h"
 #include "Component/XPlayerStatsComponent.h"
+#include "Projectiles/XProjectilesBase.h"
 
 
 AXAI_MageCharacter::AXAI_MageCharacter()
@@ -46,47 +47,6 @@ void AXAI_MageCharacter::GetIdealRange_Implementation(float& AttackRadius, float
 {
 	AttackRadius = 500.0f;
 	DefendRadius = 700.0f;
-}
-
-void AXAI_MageCharacter::Attack_Implementation(AActor* AttakTarget)
-{
-	UE_LOG(LogTemp, Warning, TEXT("MageAttack"));
-	Super::Attack_Implementation(AttakTarget);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
-	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXAI_MageCharacter::OnNotifyMontage);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXAI_MageCharacter::OnAttackMontageEnd);
-	PlayAnimMontage(AttackMontage);
-}
-
-void AXAI_MageCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
-{
-	if (NotifyName == FName(TEXT("Fire")))
-	{
-		FDamageInfo DamageInfo;
-		DamageInfo.Amount = 10.0f;
-		DamageInfo.DamageType = EDamageType::EDT_Projectile;
-		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
-		DamageInfo.bCanBeBlocked = true;
-
-		FTransform trans;
-		trans.SetLocation(GetMesh()->GetSocketLocation(TEXT("hand_rsocket")));
-
-		FVector TargetLoc = AttackTargetActor->GetActorLocation();
-
-		FRotator Rot = UKismetMathLibrary::FindLookAtRotation(
-			GetMesh()->GetSocketLocation(TEXT("hand_rSocket")),
-			TargetLoc
-		);
-		trans.SetRotation(Rot.Quaternion());
-
-		CombatComponent->MagicSpell(trans, AttackTargetActor, DamageInfo);
-	}
-}
-
-void AXAI_MageCharacter::OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted)
-{
-	IXAIInterface::Execute_AttackEnd(this, AttackTargetActor);
 }
 
 void AXAI_MageCharacter::Teleport(FVector& TargetLoc)
@@ -185,5 +145,56 @@ void AXAI_MageCharacter::HealActor(AActor* actor)
 		IXDamageInterface::Execute_Heal(actor, AIStatesComponent->GetMaxHealth() * 0.05f);
 	}
 
+}
+
+void AXAI_MageCharacter::BaseAttack(AActor* AttakTarget)
+{
+	Super::Attack_Implementation(AttakTarget);
+	FDamageInfo DamageInfo;
+	DamageInfo.Amount = 20.0f;
+	DamageInfo.DamageType = EDamageType::EDT_Projectile;
+	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+	DamageInfo.bCanBeBlocked = true;
+
+	FAttackInfo AttackInfo;
+	AttackInfo.AttackMontage = AttackMontage;
+	AttackInfo.AttackTarget = AttackTargetActor;
+	AttackInfo.DamageInfo = DamageInfo;
+
+	CombatComponent->MageBaseAttack(AttackInfo, AttackProjectileEx);
+
+}
+
+void AXAI_MageCharacter::BarrageAttack(AActor* AttakTarget)
+{
+	Super::Attack_Implementation(AttakTarget);
+	FDamageInfo DamageInfo;
+	DamageInfo.Amount = 5.0f;
+	DamageInfo.DamageType = EDamageType::EDT_Projectile;
+	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+	DamageInfo.bCanBeBlocked = true;
+
+	FAttackInfo AttackInfo;
+	AttackInfo.AttackMontage = NormalAttackAnimation;
+	AttackInfo.AttackTarget = AttackTargetActor;
+	AttackInfo.DamageInfo = DamageInfo;
+
+	CombatComponent->MageBarrageAttack(AttackInfo, NormalProjectileEx);
+}
+
+void AXAI_MageCharacter::SmashAttack(AActor* AttakTarget)
+{
+	Super::Attack_Implementation(AttakTarget);
+	FDamageInfo DamageInfo;
+	DamageInfo.Amount = 25.0f;
+	DamageInfo.DamageType = EDamageType::EDT_Projectile;
+	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+	DamageInfo.bCanBeBlocked = true;
+
+	FAttackInfo AttackInfo;
+	AttackInfo.AttackMontage = SmashMontage;
+	AttackInfo.AttackTarget = AttackTargetActor;
+	AttackInfo.DamageInfo = DamageInfo;
+	CombatComponent->GroundSmash(AttackInfo, 300.0f);
 }
 
