@@ -41,6 +41,8 @@ public:
 		UAnimMontage* AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* HitMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* StaggerMontage;
 	UPROPERTY(VisibleAnywhere)
 		class AXLineBase* Patrol;
 
@@ -71,7 +73,7 @@ public:
 	//存储AttackTarget和对其消耗的Token
 	TMap<AActor*, int> CostTokenForTarget;
 	//当前这次攻击需要消耗的Token
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 		int CurAttackNeedToken;
 
 	inline bool GetIsWiledWeapon() { return bIsWiledWeapon; }
@@ -120,7 +122,7 @@ public:
 		void CallOnDeath();
 	//virtual void CallOnDeath_Implementation();
 	UFUNCTION()
-		void CallOnBlocked(bool bCanbeParried);
+		void CallOnBlocked(AActor* DamageCauser, bool bCanbeParried);
 	//virtual void CallOnBlocked_Implementation(bool bCanbeParried);
 	UFUNCTION()
 		void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);

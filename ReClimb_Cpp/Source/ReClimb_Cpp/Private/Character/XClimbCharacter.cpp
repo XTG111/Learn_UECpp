@@ -22,6 +22,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
 #include "Projectiles/XProjectilesBase.h"
+#include "AOE/XAOEBase.h"
 
 // Sets default values
 AXClimbCharacter::AXClimbCharacter()
@@ -114,10 +115,12 @@ void AXClimbCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	//PlayerInputComponent->BindAction("Climb", IE_Released, this, &AXClimbCharacter::Climb);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AXClimbCharacter::Attack);
 	PlayerInputComponent->BindAction("Heal", IE_Pressed, this, &AXClimbCharacter::DoHeal);
+	PlayerInputComponent->BindAction("UnArmedStance", IE_Pressed, this, &AXClimbCharacter::ChangeToUnarmed);
+	PlayerInputComponent->BindAction("MagicStance", IE_Pressed, this, &AXClimbCharacter::ChangeToMagic);
+	PlayerInputComponent->BindAction("MeleeStance", IE_Pressed, this, &AXClimbCharacter::ChangeToMelee);
 
-	PlayerInputComponent->BindAction("ChangeStance", IE_Pressed, this, &AXClimbCharacter::MagicStance);
-	PlayerInputComponent->BindAction("ChangeStance", IE_Released, this, &AXClimbCharacter::DefaultStance);
-
+	PlayerInputComponent->BindAction("StartBlock", IE_Pressed, this, &AXClimbCharacter::RightMousePress);
+	PlayerInputComponent->BindAction("EndBlock", IE_Released, this, &AXClimbCharacter::RightMouseRelease);
 }
 
 float AXClimbCharacter::GetCurrentHealth_Implementation()
@@ -252,20 +255,61 @@ void AXClimbCharacter::ReClimb()
 
 void AXClimbCharacter::Attack()
 {
-	if (Stance != EPlayerStance::EPS_Magic) return;
-	if (bAttacking) return;
-	bAttacking = true;
-	bCanMove = false;
-	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
-	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
-	PlayAnimMontage(MagicAttackMontage);
-	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXClimbCharacter::OnNotifyMontage);
-	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXClimbCharacter::OnAttackMontageEnd);
+	switch (Stance)
+	{
+	case EPlayerStance::EPS_Magic:
+		MagicAttack();
+		break;
+	case EPlayerStance::EPS_Melee:
+		MeleeAttack();
+		break;
+	default:
+		break;
+	}
 }
 
 void AXClimbCharacter::DoHeal()
 {
 	IXDamageInterface::Execute_Heal(this, 10.0f);
+}
+
+void AXClimbCharacter::ChangeToUnarmed()
+{
+	ChangeStance(EPlayerStance::EPS_Default);
+}
+
+void AXClimbCharacter::ChangeToMagic()
+{
+	ChangeStance(EPlayerStance::EPS_Magic);
+}
+
+void AXClimbCharacter::ChangeToMelee()
+{
+	ChangeStance(EPlayerStance::EPS_Melee);
+}
+
+void AXClimbCharacter::RightMousePress()
+{
+	switch (Stance)
+	{
+	case EPlayerStance::EPS_Melee:
+		StartBlock();
+		break;
+	default:
+		break;
+	}
+}
+
+void AXClimbCharacter::RightMouseRelease()
+{
+	switch (Stance)
+	{
+	case EPlayerStance::EPS_Melee:
+		EndBlock();
+		break;
+	default:
+		break;
+	}
 }
 
 void AXClimbCharacter::DelayStopMontage(float MontageBlendOutTime, UAnimMontage* Montage)
@@ -359,12 +403,25 @@ void AXClimbCharacter::OnLanded(const FHitResult& Hit)
 void AXClimbCharacter::MagicStance()
 {
 	//Show CrossHair CrossHairWID
-
 	Stance = EPlayerStance::EPS_Magic;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 	bInAttack = true;
+	if (ShieldActor && SwordActor)
+	{
+		SaveSwordAndShield();
+	}
+}
+
+void AXClimbCharacter::MeleeStance()
+{
+	Stance = EPlayerStance::EPS_Melee;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+	bInAttack = true;
+	SpawnSwordAndShield();
 }
 
 void AXClimbCharacter::DefaultStance()
@@ -374,6 +431,173 @@ void AXClimbCharacter::DefaultStance()
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
 	bInAttack = false;
+	if (ShieldActor && SwordActor)
+	{
+		SaveSwordAndShield();
+	}
+}
+
+void AXClimbCharacter::ChangeStance(EPlayerStance stance)
+{
+	EPlayerStance OldStance = Stance;
+	DefaultStance();
+	switch (stance)
+	{
+	case EPlayerStance::EPS_Magic:
+		if (OldStance != EPlayerStance::EPS_Magic)
+		{
+			MagicStance();
+		}
+		break;
+	case EPlayerStance::EPS_Melee:
+		if (OldStance != EPlayerStance::EPS_Melee)
+		{
+			MeleeStance();
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void AXClimbCharacter::SpawnSwordAndShield()
+{
+	FAttachmentTransformRules AttachmentRules(
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::SnapToTarget,
+		true
+	);
+	SwordActor = SwordActor != nullptr ? SwordActor : GetWorld()->SpawnActor<AActor>(SwordClass);
+	if (SwordActor)
+	{
+		SwordActor->AttachToComponent(
+			GetMesh(),
+			AttachmentRules,
+			FName(TEXT("WeaponHandR"))
+		);
+	}
+	ShieldActor = ShieldActor != nullptr ? ShieldActor : GetWorld()->SpawnActor<AActor>(ShieldClass);
+	if (ShieldActor)
+	{
+		ShieldActor->AttachToComponent(
+			GetMesh(),
+			AttachmentRules,
+			FName(TEXT("WeaponHandL"))
+		);
+	}
+}
+
+void AXClimbCharacter::SaveSwordAndShield()
+{
+	FAttachmentTransformRules AttachmentRules(
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::SnapToTarget,
+		true
+	);
+	SwordActor->AttachToComponent(
+		GetMesh(),
+		AttachmentRules,
+		FName(TEXT("SwordSaveSocket"))
+	);
+	ShieldActor->AttachToComponent(
+		GetMesh(),
+		AttachmentRules,
+		FName(TEXT("ShieldSaveSocket"))
+	);
+}
+
+void AXClimbCharacter::MagicAttack()
+{
+	if (bAttacking) return;
+	bAttacking = true;
+	bCanMove = false;
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+	PlayAnimMontage(MagicAttackMontage);
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXClimbCharacter::OnNotifyMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXClimbCharacter::OnAttackMontageEnd);
+}
+
+void AXClimbCharacter::MeleeAttack()
+{
+	if (bAttacking) return;
+	bAttacking = true;
+	bCanMove = false;
+	//当没有在window里面时，直接播放动画
+	if (!bInComboWindow)
+	{
+		GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyEnd.Clear();
+		PlayAnimMontage(MeleeAttackMontage);
+		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXClimbCharacter::OnNotifyMontage);
+		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyEnd.AddDynamic(this, &AXClimbCharacter::OnNotifyMontageEnd);
+		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXClimbCharacter::OnAttackMontageEnd);
+	}
+	//如果在 表示在Montage的窗口之间再次按下了左键，可以Combo
+	else
+	{
+		bCanResumeCombo = true;
+	}
+
+}
+
+void AXClimbCharacter::AOEDamageForOverlapActor(AActor* actor)
+{
+	FDamageInfo DamageInfo;
+	DamageInfo.Amount = 20.0f;
+	DamageInfo.DamageType = EDamageType::EDT_Projectile;
+	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+	DamageInfo.bCanBeBlocked = false;
+	if (actor != this && actor->Implements<UXDamageInterface>())
+	{
+		if (IXDamageInterface::Execute_GetTeamNumber(this) != IXDamageInterface::Execute_GetTeamNumber(actor))
+		{
+			IXDamageInterface::Execute_TakeDamage(actor, DamageInfo, this);
+		}
+	}
+}
+
+void AXClimbCharacter::StartBlock()
+{
+	if (bBlocking) return;
+	bBlocking = true;
+
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.Clear();
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyEnd.Clear();
+	PlayAnimMontage(BlockAttackMontage);
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AXClimbCharacter::OnNotifyMontage);
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyEnd.AddDynamic(this, &AXClimbCharacter::OnNotifyMontageEnd);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXClimbCharacter::OnAttackMontageEnd);
+}
+
+void AXClimbCharacter::EndBlock()
+{
+	bBlocking = false;
+	bInParryWindow = false;
+	bIsReactingBlock = false;
+	PlayerStatesComponent->SetIsBlocking(false);
+	StopAnimMontage(BlockAttackMontage);
+}
+
+void AXClimbCharacter::ParryAttack(AActor* ParryActor)
+{
+	FDamageInfo DamageInfo;
+	DamageInfo.Amount = 10.0f;
+	DamageInfo.DamageType = EDamageType::EDT_Melee;
+	DamageInfo.DamageResponse = EDamageResponse::EDR_Stagger;
+	DamageInfo.bShouldForceInterrupt = true;//强制打断
+	if (ParryActor && ParryActor->Implements<UXDamageInterface>())
+	{
+		IXDamageInterface::Execute_TakeDamage(ParryActor, DamageInfo, this);
+		if (ParryActor && ParryActor->Implements<UXAIInterface>())
+		{
+			IXAIInterface::Execute_AttackEnd(ParryActor, this);
+		}
+	}
 }
 
 void AXClimbCharacter::CallOnDeath()
@@ -390,9 +614,19 @@ void AXClimbCharacter::CallOnDeath()
 	DisableInput(GetWorld()->GetFirstPlayerController());
 }
 
-void AXClimbCharacter::CallOnBlocked(bool bCanbeParried)
+void AXClimbCharacter::CallOnBlocked(AActor* DamageCauser, bool bCanbeParried)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Character On Blocked"));
+	bIsReactingBlock = true; // 正在block
+	bool bGoParry = bInParryWindow && bCanbeParried;
+	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
+	PlayAnimMontage(bGoParry ? ParryReactMontage : BlockReactMontage);
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AXClimbCharacter::OnBlockMontageEnd);
+	//当在反弹窗口，并且可以反弹伤寒
+	if (bGoParry)
+	{
+		ParryAttack(DamageCauser);
+	}
 }
 
 void AXClimbCharacter::CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor)
@@ -405,7 +639,6 @@ void AXClimbCharacter::CallOnDamageResponse(EDamageResponse DamageResponse, AAct
 		Widget->HealthBar->SetPercent(value / MaxHealth);
 	}
 	PlayAnimMontage(OnHitMontage);
-	//UE_LOG(LogTemp, Warning, TEXT("Character On DamageResponse"));
 }
 
 void AXClimbCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -445,12 +678,90 @@ void AXClimbCharacter::OnNotifyMontage(FName NotifyName, const FBranchingPointNo
 		trans.SetRotation(Rot.Quaternion());
 		CombatComponent->MagicSpell(trans, nullptr, DamageInfo, ProjectileEx);
 	}
+
+	if (NotifyName == FName(TEXT("SwordAttack")))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Sword Attack"));
+		FDamageInfo DamageInfo;
+		DamageInfo.Amount = 20.0f;
+		DamageInfo.DamageType = EDamageType::EDT_Projectile;
+		DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
+		DamageInfo.bCanBeBlocked = false;
+		FVector Start = GetActorLocation();
+		FVector End = Start + GetActorForwardVector() * 600.0f;
+		CombatComponent->SwordRadius = 20.0f;
+		CombatComponent->SwordAttack(Start, End, DamageInfo, this);
+	}
+
+	if (NotifyName == FName(TEXT("AOESlash")))
+	{
+		FTransform SpawnTrans = FTransform();
+		SpawnTrans.SetLocation(GetActorLocation());
+		ComboAOEActor = GetWorld()->SpawnActor<AXAOEBase>(ComboAOEClass, SpawnTrans);
+		ComboAOEActor->SphereRadius = 300.0f;
+		ComboAOEActor->OnAOEOverlapActor.AddDynamic(this, &AXClimbCharacter::AOEDamageForOverlapActor);
+		ComboAOEActor->Trigger();
+	}
+	if (NotifyName == FName(TEXT("ComboAttackWindow")))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Begin Window bCanResumeCombo: %d"), bCanResumeCombo);
+		bInComboWindow = true;
+		//使得可以继续攻击
+		bAttacking = false;
+		bCanMove = true;
+		//重置Combo统计
+		bCanResumeCombo = false;
+	}
+
+	if (NotifyName == FName(TEXT("Block")))
+	{
+		PlayerStatesComponent->SetIsBlocking(true);
+
+	}
+	if (NotifyName == FName(TEXT("ParryWindow")))
+	{
+		bInParryWindow = true;
+	}
+}
+
+void AXClimbCharacter::OnNotifyMontageEnd(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == FName(TEXT("ComboAttackWindow")))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("End Window bCanResumeCombo: %d"), bCanResumeCombo);
+		bInComboWindow = false;
+		//如果bCanResumeCombo = false 说明无法combo stop
+		if (!bCanResumeCombo)
+		{
+			StopAnimMontage(MeleeAttackMontage);
+		}
+	}
+	if (NotifyName == FName(TEXT("ParryWindow")))
+	{
+		bInParryWindow = false;
+	}
 }
 
 void AXClimbCharacter::OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bAttacking = false;
 	bCanMove = true;
+	bInComboWindow = false;
+	bCanResumeCombo = false;
+	if (!bInterrupted)
+	{
+		EndBlock();
+	}
+	if (bInterrupted && !bIsReactingBlock)
+	{
+		//避免2个敌人同时攻击导致只能阻挡一个
+		EndBlock();
+	}
 }
+void AXClimbCharacter::OnBlockMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	EndBlock();
+}
+
 
 

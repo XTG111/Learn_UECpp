@@ -160,6 +160,7 @@ void UXCombatComponent::FireBullet(FVector TraceStart, FVector TraceEnd, FDamage
 
 void UXCombatComponent::SwordAttack(FVector TraceStart, FVector TraceEnd, FDamageInfo damageinfo, AActor* IgnoreActor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("%d"), IgnoreActor);
 	ETraceTypeQuery ETType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
 	TArray<FHitResult> HitResults;
 	bool bIsHit = UKismetSystemLibrary::SphereTraceMulti(
@@ -342,7 +343,10 @@ void UXCombatComponent::AOEDamageForOverlapActor(AActor* actor)
 {
 	if (actor != CompOwner && actor->Implements<UXDamageInterface>())
 	{
-		IXDamageInterface::Execute_TakeDamage(actor, AttackInfo.DamageInfo, CompOwner);
+		if (IXDamageInterface::Execute_GetTeamNumber(CompOwner) != IXDamageInterface::Execute_GetTeamNumber(actor))
+		{
+			IXDamageInterface::Execute_TakeDamage(actor, AttackInfo.DamageInfo, CompOwner);
+		}
 	}
 }
 
@@ -444,7 +448,7 @@ void UXCombatComponent::OnLand(const FHitResult& Hit)
 void UXCombatComponent::SpinMesh()
 {
 	LastRelRotation = Cast<ACharacter>(CompOwner)->GetMesh()->GetRelativeRotation();
-	SpinTimeline->Play();
+	SpinTimeline->PlayFromStart();
 }
 
 void UXCombatComponent::SpinTimelineTickCall(float value)

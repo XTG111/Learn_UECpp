@@ -59,7 +59,7 @@ public:
 		void EndBlock();
 
 
-	void CallOnBlocked(bool bCanbeParried);
+	void CallOnBlocked(AActor* DamageCauser, bool bCanbeParried);
 
 	void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);
 

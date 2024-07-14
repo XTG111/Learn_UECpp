@@ -30,10 +30,24 @@ public:
 
 public:
 	//攻击动画
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		class UAnimMontage* MagicAttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* MeleeAttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* BlockAttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* BlockReactMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		class UAnimMontage* ParryReactMontage;
+
+	UPROPERTY(EditAnywhere, Category = "ComboAttack")
+		TSubclassOf<class AXAOEBase> ComboAOEClass;
+	UPROPERTY()
+		AXAOEBase* ComboAOEActor;
+
 	//受击动画
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		class UAnimMontage* OnHitMontage;
 
 	//控制玩家的团队
@@ -66,14 +80,19 @@ private:
 	UPROPERTY()
 		class AXHUD* XCharacterHUD;
 
-
+	//Sword And Shield
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AActor> SwordClass;
+	UPROPERTY()
+		AActor* SwordActor;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AActor> ShieldClass;
+	UPROPERTY()
+		AActor* ShieldActor;
 
 	//玩家当前的状态
 	EPlayerStance Stance;
 
-
-	// 运动输入
-	bool bCanMove = true;
 	float AxisValue;
 	//是否加速
 	bool bSprinting;
@@ -86,10 +105,18 @@ private:
 	//StopMontage的延时TimerHandle;
 	FTimerHandle StopMontageTimerHandle;
 	FTimerDelegate StopMontageTimerDelegate;
+	//是否在Combo
+	bool bInComboWindow;
+	bool bCanResumeCombo;
+	//是否在Parr窗口
+	bool bInParryWindow;
+	bool bIsReactingBlock;
 
-	bool bAttacking;
 
 public:
+	bool bAttacking;
+	bool bBlocking;
+	bool bCanMove = true;
 	inline EPlayerStance GetPlayerStance() { return Stance; }
 	inline void SetPlayerStance(EPlayerStance stance) { Stance = stance; }
 	inline bool GetInAttack() { return bInAttack; }
@@ -120,9 +147,16 @@ public:
 	void SlowSpeed();
 	void Climb();
 	void ReClimb();
-
 	void Attack();
 	void DoHeal();
+
+	void RightMousePress();
+	void RightMouseRelease();
+
+	//input to stance change
+	void ChangeToUnarmed();
+	void ChangeToMagic();
+	void ChangeToMelee();
 
 	//State
 public:
@@ -141,14 +175,31 @@ public:
 
 	//切换攻击和默认状态
 	void MagicStance();
+	void MeleeStance();
 	void DefaultStance();
+	void ChangeStance(EPlayerStance stance);
+
+	//近战模式生成剑和盾
+	void SpawnSwordAndShield();
+	void SaveSwordAndShield();
+
+	//Attack
+	void MagicAttack();
+	void MeleeAttack();
+	UFUNCTION()
+		void AOEDamageForOverlapActor(AActor* actor);
+
+	//Block
+	void StartBlock();
+	void EndBlock();
+	void ParryAttack(AActor* ParryActor);
 
 	//UFUNCTION Bind Delegate
 public:
 	UFUNCTION()
 		void CallOnDeath();
 	UFUNCTION()
-		void CallOnBlocked(bool bCanbeParried);
+		void CallOnBlocked(AActor* DamageCauser, bool bCanbeParried);
 	UFUNCTION()
 		void CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor);
 
@@ -156,5 +207,9 @@ public:
 	UFUNCTION()
 		void OnNotifyMontage(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 	UFUNCTION()
+		void OnNotifyMontageEnd(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
+	UFUNCTION()
 		void OnAttackMontageEnd(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+		void OnBlockMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };

@@ -215,7 +215,6 @@ void AXAI_Character::AttackEnd_Implementation(AActor* AttackTarget)
 {
 	if (AttackTarget && AttackTarget->Implements<UXDamageInterface>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackEnd ReturnToken"));
 		IXDamageInterface::Execute_ReturnAttackToken(AttackTarget, CurAttackNeedToken);
 		int NeedRemoveTokenFromMap = -1 * CurAttackNeedToken;
 		IXAIInterface::Execute_StoreAttackToken(this, AttackTarget, NeedRemoveTokenFromMap);
@@ -239,6 +238,7 @@ void AXAI_Character::StoreAttackToken_Implementation(AActor* AttackTarget, int T
 void AXAI_Character::CallOnDeath()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("AI On Death"));
+	StopAnimMontage();
 	UXWidget_EnemyHeadHP* Widget = Cast<UXWidget_EnemyHeadHP>(EnemyHPWidget->GetWidget());
 	if (Widget)
 	{
@@ -262,9 +262,9 @@ void AXAI_Character::CallOnDeath()
 }
 
 
-void AXAI_Character::CallOnBlocked(bool bCanbeParried)
+void AXAI_Character::CallOnBlocked(AActor* DamageCauser, bool bCanbeParried)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AI On Blocked"));
+	//IXDamageInterface::Execute_ReturnAttackToken(AttackTargetActor, CurAttackNeedToken);
 }
 
 void AXAI_Character::CallOnDamageResponse(EDamageResponse DamageResponse, AActor* DamageCausor)

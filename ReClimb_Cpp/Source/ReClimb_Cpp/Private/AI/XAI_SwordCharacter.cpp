@@ -48,7 +48,7 @@ void AXAI_SwordCharacter::StartBlock()
 	BlockStace = EBlockingStace::EBS_Blocking;
 	//当阻挡时立即停止移动
 	GetCharacterMovement()->StopMovementImmediately();
-	AIStatesComponent->OnBlocked.Broadcast(true);
+	AIStatesComponent->OnBlocked.Broadcast(AttackTargetActor, true);
 	GetWorldTimerManager().ClearTimer(BlockEndTimer);
 	GetWorldTimerManager().SetTimer(BlockEndTimer, this, &AXAI_SwordCharacter::EndBlock, 2.0f);
 
@@ -72,9 +72,10 @@ void AXAI_SwordCharacter::EndBlock()
 	OnBlockEnded.Broadcast();
 }
 
-void AXAI_SwordCharacter::CallOnBlocked(bool bCanbeParried)
+void AXAI_SwordCharacter::CallOnBlocked(AActor* DamageCauser, bool bCanbeParried)
 {
-	//Super::CallOnBlocked(bCanbeParried);
+	//Super::CallOnBlocked(DamageCauser, bCanbeParried);
+	//IXDamageInterface::Execute_ReturnAttackToken(DamageCauser, CurAttackNeedToken);
 	BlockStace = EBlockingStace::EBS_BlockSuccess;
 	GetWorldTimerManager().ClearTimer(BlockEndTimer);
 	GetMesh()->GetAnimInstance()->OnMontageEnded.Clear();
@@ -179,6 +180,7 @@ void AXAI_SwordCharacter::ShortAttack(AActor* AttakTarget)
 	DamageInfo.DamageType = EDamageType::EDT_Projectile;
 	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
 	DamageInfo.bCanBeBlocked = true;
+	DamageInfo.bCanBeParried = true;
 
 	FAttackInfo AttackInfo;
 	AttackInfo.AttackMontage = AttackMontage;
@@ -195,6 +197,7 @@ void AXAI_SwordCharacter::JumpAttack(AActor* AttakTarget)
 	DamageInfo.DamageType = EDamageType::EDT_Projectile;
 	DamageInfo.DamageResponse = EDamageResponse::EDR_HitReaction;
 	DamageInfo.bCanBeBlocked = true;
+	DamageInfo.bCanBeParried = true;
 
 	FAttackInfo AttackInfo;
 	AttackInfo.AttackMontage = JumpAttackMontage;

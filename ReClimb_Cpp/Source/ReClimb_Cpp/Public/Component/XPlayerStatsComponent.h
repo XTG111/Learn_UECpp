@@ -9,7 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCallOnDeath);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCallOnDamageResponse, EDamageResponse, DamageResponse, AActor*, DamageCausor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCallOnBlocked, bool, bCanbeParried);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCallOnBlocked, AActor*, DamageCauser, bool, bCanbeParried);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class RECLIMB_CPP_API UXPlayerStatsComponent : public UActorComponent
@@ -41,7 +41,8 @@ private:
 	bool bIsBlocking = false;
 
 	//¶àÈË¹¥»÷Token
-	int AttackTokenCount = 1;
+	UPROPERTY(EditAnywhere)
+		int AttackTokenCount = 1;
 
 
 public:

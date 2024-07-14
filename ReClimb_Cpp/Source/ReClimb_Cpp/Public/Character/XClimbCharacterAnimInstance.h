@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Struct/XStructInfo.h"
 #include "XClimbCharacterAnimInstance.generated.h"
 
 /**
@@ -25,6 +26,8 @@ public:
 private:
 	UPROPERTY(BlueprintReadOnly, Category = CharacterRef, meta = (AllowPrivateAccess = "true"))
 		class AXClimbCharacter* XClimbCharacter;
+	UPROPERTY(BlueprintReadOnly, Category = MoveControl, meta = (AllowPrivateAccess = "true"))
+		EPlayerStance Stance;
 	//State Machine
 	UPROPERTY(BlueprintReadOnly, Category = IsInAir, meta = (AllowPrivateAccess = "true"))
 		bool bIsInAir;

@@ -50,7 +50,7 @@ bool UXPlayerStatsComponent::TakeDamage(FDamageInfo DamageInfo, AActor* DamageCa
 	int check = CanBeDamaged(DamageInfo.bShouldDamageInvincible, DamageInfo.bCanBeBlocked);
 	if (check == 0)
 	{
-		OnBlocked.Broadcast(DamageInfo.bCanBeParried);
+		OnBlocked.Broadcast(DamageCausor, DamageInfo.bCanBeParried);
 		return false;
 	}
 	else if (check == 1)

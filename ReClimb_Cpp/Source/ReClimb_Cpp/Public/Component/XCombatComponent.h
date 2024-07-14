@@ -136,7 +136,7 @@ public:
 	//spin Attack
 	void SpinAttack(FAttackInfo& attackinfo, float radius);
 	float SpinRadius;
-	UPROPERTY(EditAnywhere, Category = "SmashAttack")
+	UPROPERTY(EditAnywhere, Category = "SpinAttack")
 		TSubclassOf<AXAOEBase> SpinAOEClass;
 	UPROPERTY()
 		AXAOEBase* SpinAOEActor;

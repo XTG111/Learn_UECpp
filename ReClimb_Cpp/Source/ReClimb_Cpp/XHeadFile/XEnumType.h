@@ -6,7 +6,8 @@ enum class EPlayerStance : uint8
 {
 	EPS_None UMETA(DisplayName = "None"),
 	EPS_Default UMETA(DisplayName = "Defual"),
-	EPS_Magic UMETA(DisplayeName = "Magic"),
+	EPS_Magic UMETA(DisplayName = "Magic"),
+	EPS_Melee UMETA(DisplayName = "Melee")
 };
 
 //攀爬类型的枚举

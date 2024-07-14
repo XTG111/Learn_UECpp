@@ -16,6 +16,7 @@ void UXClimbCharacterAnimInstance::NativeInitializeAnimation()
 void UXClimbCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	if (!IsValid(XClimbCharacter)) return;
+	Stance = XClimbCharacter->GetPlayerStance();
 	bIsInAir = XClimbCharacter->GetCharacterMovement()->IsFalling();
 	bInAttack = XClimbCharacter->GetInAttack();
 	speed = XClimbCharacter->GetVelocity().Size();
